@@ -8,8 +8,6 @@ I’m passionate about Python programming, JEE preparation, and building real-wo
 
 ⚡ Interested in connecting academics with practical applications.
 
-🏏 Big fan of IPL cricket, especially RCB.
-
 🎶 Love curating music mixes — energetic singles for work, calm beats for chilling.
 
 🛠️ Skills
@@ -17,7 +15,7 @@ Python programming (beginner → intermediate projects)
 
 HTML & web basics
 
-Physics numericals (motion & kinematics)
+Physics numericals.
 
 Organized study routines and digital productivity setups
 📂 Projects
