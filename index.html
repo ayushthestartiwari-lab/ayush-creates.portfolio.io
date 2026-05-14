@@ -3,52 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Be Ahead | Project Portal</title>
+    <title>BE AHEAD // Labs</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Importing a clean, professional font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Grainy texture overlay for premium feel -->
+    <div class="noise"></div>
 
-    <main class="wrapper">
-        <!-- PAGE 1: LANDING -->
-        <section id="home" class="page active">
-            <div class="hero-content">
-                <div class="quote-container">
-                    <h1 class="glitch-text" data-text="MOVE FAST">MOVE FAST</h1>
-                    <h1 class="glitch-text ahead" data-text="BE AHEAD">BE AHEAD</h1>
+    <main id="app">
+        <!-- SCREEN 1: THE HERO -->
+        <section id="home" class="screen active">
+            <nav class="top-nav">
+                <span class="logo">BE AHEAD</span>
+                <span class="status">SYSTEM_READY</span>
+            </nav>
+            
+            <div class="hero-center">
+                <div class="v-stack">
+                    <h1 class="reveal-text">MOVE FAST</h1>
+                    <h1 class="reveal-text offset">BE AHEAD</h1>
                 </div>
-                <button class="main-btn" onclick="navigateTo('explorer')">Explore Projects</button>
+                <button class="cybr-btn" onclick="nav('explorer')">
+                    LAUNCH_EXPLORER<span aria-hidden>_</span>
+                </button>
             </div>
         </section>
 
-        <!-- PAGE 2: EXPLORER -->
-        <section id="explorer" class="page">
-            <header class="explorer-header">
-                <h2>Project Database</h2>
-                <div class="filter-controls">
-                    <div class="filter-row" id="lang-tags">
-                        <button class="tag active" onclick="setFilter('lang', 'All', this)">All</button>
-                        <button class="tag" onclick="setFilter('lang', 'Python', this)">Python</button>
-                        <button class="tag" onclick="setFilter('lang', 'Java', this)">Java</button>
-                        <button class="tag" onclick="setFilter('lang', 'JavaScript', this)">JavaScript</button>
-                        <button class="tag" onclick="setFilter('lang', 'Go', this)">Go</button>
-                        <button class="tag" onclick="setFilter('lang', 'HTML', this)">HTML</button>
-                        <button class="tag" onclick="setFilter('lang', 'Rust', this)">Rust</button>
+        <!-- SCREEN 2: THE EXPLORER -->
+        <section id="explorer" class="screen">
+            <div class="explorer-ui">
+                <aside class="sidebar">
+                    <div class="filter-group">
+                        <label>STACK</label>
+                        <ul id="lang-list">
+                            <li class="active" onclick="setFilter('lang', 'All', this)">ALL_DEPS</li>
+                            <li onclick="setFilter('lang', 'Python', this)">PYTHON</li>
+                            <li onclick="setFilter('lang', 'Rust', this)">RUST</li>
+                            <li onclick="setFilter('lang', 'Go', this)">GOLANG</li>
+                            <li onclick="setFilter('lang', 'JavaScript', this)">JS_TS</li>
+                        </ul>
                     </div>
-                    <div class="filter-row" id="diff-tags">
-                        <button class="tag active" onclick="setFilter('diff', 'All', this)">Any Level</button>
-                        <button class="tag" onclick="setFilter('Beginner', 'Beginner', this)">Beginner</button>
-                        <button class="tag" onclick="setFilter('Advanced', 'Advanced', this)">Advanced</button>
+                    <div class="filter-group">
+                        <label>TIER</label>
+                        <ul id="diff-list">
+                            <li class="active" onclick="setFilter('diff', 'All', this)">LEVEL_ANY</li>
+                            <li onclick="setFilter('diff', 'Beginner', this)">L1_CORE</li>
+                            <li onclick="setFilter('diff', 'Advanced', this)">L2_ADVANCED</li>
+                        </ul>
+                    </div>
+                    <button class="back-btn" onclick="nav('home')">TERMINATE_SESSION</button>
+                </aside>
+
+                <div class="content-area">
+                    <div id="project-grid" class="bento-grid">
+                        <!-- JS Injection -->
                     </div>
                 </div>
-            </header>
-
-            <div id="project-grid" class="grid">
-                <!-- Projects injected by JS -->
             </div>
-
-            <button class="back-link" onclick="navigateTo('home')">← Back to Home</button>
         </section>
     </main>
 

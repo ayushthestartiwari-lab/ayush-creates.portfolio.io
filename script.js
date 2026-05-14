@@ -1,34 +1,33 @@
-const projectData = [
-    { title: "Automation Bot", lang: "Python", diff: "Beginner", desc: "A simple bot to organize your workspace files automatically." },
-    { title: "Advanced ML Model", lang: "Python", diff: "Advanced", desc: "Predictive analysis using specialized datasets." },
-    { title: "Enterprise CRM", lang: "Java", diff: "Advanced", desc: "A robust client management system for high-scale businesses." },
-    { title: "Pixel Portfolio", lang: "HTML", diff: "Beginner", desc: "A pixel-perfect landing page focused on typography." },
-    { title: "Realtime Chat", lang: "JavaScript", diff: "Advanced", desc: "Using WebSockets for instant global messaging." },
-    { title: "Network Proxy", lang: "Go", diff: "Advanced", desc: "Efficient load balancer for high-traffic servers." },
-    { title: "Kernel Tool", lang: "Rust", diff: "Advanced", desc: "Low-level system utility for memory management." },
-    { title: "ToDo Pro", lang: "JavaScript", diff: "Beginner", desc: "Interactive task manager with local storage." }
+const DB = [
+    { id: 1, title: "QUANTUM_SCRAPER", lang: "Python", diff: "Advanced", info: "High-concurrency data harvesting engine." },
+    { id: 2, title: "VOID_SHELL", lang: "Rust", diff: "Advanced", info: "Unix-based memory-safe terminal implementation." },
+    { id: 3, title: "NEO_CORE", lang: "Go", diff: "Beginner", desc: "Minimalist microservice boilerplate." },
+    { id: 4, title: "NIGHT_VISION", lang: "JavaScript", diff: "Advanced", info: "Real-time edge detection via WebCam." }
 ];
 
-let filters = { lang: 'All', diff: 'All' };
+let currentFilters = { lang: 'All', diff: 'All' };
 
-function navigateTo(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+function nav(id) {
+    document.querySelectorAll('.screen').forEach(s => {
+        s.style.opacity = '0';
+        setTimeout(() => s.classList.remove('active'), 300);
+    });
+    
     setTimeout(() => {
-        const target = document.getElementById(pageId);
-        target.classList.add('active');
-        if(pageId === 'explorer') render();
-    }, 100);
+        const next = document.getElementById(id);
+        next.classList.add('active');
+        setTimeout(() => next.style.opacity = '1', 50);
+        if(id === 'explorer') render();
+    }, 400);
 }
 
-function setFilter(type, value, btn) {
-    // Update State
-    if (type === 'lang') filters.lang = value;
-    else filters.diff = value;
-
-    // Update UI Buttons
-    btn.parentElement.querySelectorAll('.tag').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
+function setFilter(type, value, el) {
+    currentFilters[type] = value;
+    
+    // UI selection visual
+    el.parentElement.querySelectorAll('li').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+    
     render();
 }
 
@@ -36,28 +35,21 @@ function render() {
     const grid = document.getElementById('project-grid');
     grid.innerHTML = '';
 
-    const filtered = projectData.filter(p => {
-        const langMatch = filters.lang === 'All' || p.lang === filters.lang;
-        const diffMatch = filters.diff === 'All' || p.diff === filters.diff;
-        return langMatch && diffMatch;
+    const results = DB.filter(p => {
+        return (currentFilters.lang === 'All' || p.lang === currentFilters.lang) &&
+               (currentFilters.diff === 'All' || p.diff === currentFilters.diff);
     });
 
-    filtered.forEach((p, index) => {
+    results.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-            <span style="font-size:0.8rem; color:#888; font-weight:700;">${p.lang} // ${p.diff}</span>
-            <h3 style="margin: 15px 0 10px 0; font-size:1.5rem;">${p.title}</h3>
-            <p style="line-height:1.6; color:#444;">${p.desc}</p>
+            <div style="font-family:monospace; color:rgba(255,255,255,0.4); font-size:10px; margin-bottom:1rem;">
+                ${p.lang} // ${p.diff.toUpperCase()}
+            </div>
+            <h3 style="letter-spacing:-1px; margin:0 0 10px 0;">${p.title}</h3>
+            <p style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5;">${p.info || "No data provided for this module."}</p>
         `;
         grid.appendChild(card);
-        
-        // Staggered entrance effect
-        setTimeout(() => card.classList.add('show'), index * 100);
     });
 }
-
-// Initial Landing Animation
-window.onload = () => {
-    console.log("Be Ahead Loaded Successfully.");
-};
