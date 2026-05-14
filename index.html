@@ -1,60 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Be Ahead | Master Code</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be Ahead | Master Code</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .card-glow:hover { box-shadow: 0 20px 40px -15px rgba(59,130,246,0.15); }
-  </style>
+<style>
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+.card-glow:hover { box-shadow: 0 20px 40px -15px rgba(59,130,246,0.15); }
+</style>
 </head>
 
 <body class="bg-white text-slate-900">
 
-  <!-- Navigation -->
-  <nav class="p-6 flex justify-between border-b">
-    <div class="font-bold text-xl">Be <span class="text-blue-600">Ahead</span></div>
-  </nav>
+<nav class="p-6 flex justify-between border-b">
+  <div class="font-bold text-xl">Be <span class="text-blue-600">Ahead</span></div>
+</nav>
 
-  <!-- Hero -->
-  <header class="text-center py-20">
-    <h1 class="text-5xl font-bold">Move Fast. Be Ahead.</h1>
-  </header>
+<header class="text-center py-20">
+  <h1 class="text-5xl font-bold">Move Fast. Be Ahead.</h1>
+</header>
 
-  <!-- Main Content -->
-  <main class="max-w-6xl mx-auto p-6">
-    <!-- Language Grid (populated by script.js) -->
-    <div id="language-grid" class="grid md:grid-cols-3 gap-6"></div>
+<main class="max-w-6xl mx-auto p-6">
+  <div id="language-grid" class="grid md:grid-cols-3 gap-6"></div>
+</main>
 
-    <!-- New Section: Why Be Ahead -->
-    <section id="why-beahead" class="text-center py-20 opacity-0 transform translate-y-10 transition-all duration-1000 ease-out">
-      <h2 class="text-4xl font-bold mb-6">Why Be Ahead</h2>
-      <p class="max-w-2xl mx-auto text-lg text-slate-700">
-        Be Ahead is built to inspire learners, coders, and creators to stay one step ahead in technology.
-        Our mission is to simplify coding concepts, share innovative projects, and encourage students to
-        explore AI, web development, and problem‑solving.
-      </p>
-    </section>
-  </main>
-
-  <!-- Scroll Animation Script -->
-  <script>
-    document.addEventListener("scroll", () => {
-      const section = document.getElementById("why-beahead");
-      const rect = section.getBoundingClientRect();
-      if (rect.top < window.innerHeight - 100) {
-        section.classList.add("opacity-100", "translate-y-0");
-      }
-    });
-  </script>
-
-  <!-- Your existing dynamic content script -->
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
