@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be Ahead | Project Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Importing a clean, professional font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <main class="wrapper">
+        <!-- PAGE 1: LANDING -->
+        <section id="home" class="page active">
+            <div class="hero-content">
+                <div class="quote-container">
+                    <h1 class="glitch-text" data-text="MOVE FAST">MOVE FAST</h1>
+                    <h1 class="glitch-text ahead" data-text="BE AHEAD">BE AHEAD</h1>
+                </div>
+                <button class="main-btn" onclick="navigateTo('explorer')">Explore Projects</button>
+            </div>
+        </section>
+
+        <!-- PAGE 2: EXPLORER -->
+        <section id="explorer" class="page">
+            <header class="explorer-header">
+                <h2>Project Database</h2>
+                <div class="filter-controls">
+                    <div class="filter-row" id="lang-tags">
+                        <button class="tag active" onclick="setFilter('lang', 'All', this)">All</button>
+                        <button class="tag" onclick="setFilter('lang', 'Python', this)">Python</button>
+                        <button class="tag" onclick="setFilter('lang', 'Java', this)">Java</button>
+                        <button class="tag" onclick="setFilter('lang', 'JavaScript', this)">JavaScript</button>
+                        <button class="tag" onclick="setFilter('lang', 'Go', this)">Go</button>
+                        <button class="tag" onclick="setFilter('lang', 'HTML', this)">HTML</button>
+                        <button class="tag" onclick="setFilter('lang', 'Rust', this)">Rust</button>
+                    </div>
+                    <div class="filter-row" id="diff-tags">
+                        <button class="tag active" onclick="setFilter('diff', 'All', this)">Any Level</button>
+                        <button class="tag" onclick="setFilter('Beginner', 'Beginner', this)">Beginner</button>
+                        <button class="tag" onclick="setFilter('Advanced', 'Advanced', this)">Advanced</button>
+                    </div>
+                </div>
+            </header>
+
+            <div id="project-grid" class="grid">
+                <!-- Projects injected by JS -->
+            </div>
+
+            <button class="back-link" onclick="navigateTo('home')">← Back to Home</button>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
