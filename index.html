@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be Ahead | Master Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #ffffff; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+        .card-glow:hover { box-shadow: 0 20px 40px -15px rgba(59, 130, 246, 0.15); }
+        
+        /* Animated text styles */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes highlight {
+            0%, 100% { color: #3b82f6; text-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { color: #1e40af; text-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        }
+        
+        .animated-text {
+            animation: slideInLeft 0.8s ease-out;
+        }
+        
+        .animated-highlight {
+            animation: slideInRight 0.8s ease-out 0.2s both, highlight 2.5s ease-in-out 1s infinite;
+        }
+        
+        .animated-desc {
+            animation: slideInLeft 0.8s ease-out 0.4s both;
+        }
+    </style>
+</head>
+<body class="text-slate-900 overflow-x-hidden">
+
+    <!-- Subtle Background Glows -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-50/50 via-transparent to-transparent -z-10"></div>
+
+    <nav class="glass border-b border-slate-100 py-5 px-10 flex justify-between items-center sticky top-0 z-50">
+        <div class="text-2xl font-extrabold tracking-tighter text-slate-900">Be <span class="text-blue-600">Ahead.</span></div>
+        <div class="hidden md:flex gap-8 text-sm font-semibold text-slate-500">
+            <a href="#" class="text-blue-600">Library</a>
+            <a href="#" class="hover:text-slate-900 transition">Roadmaps</a>
+            <a href="#" class="hover:text-slate-900 transition">Community</a>
+        </div>
+        <button class="bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-blue-600 transition shadow-lg shadow-slate-200">Start Learning</button>
+    </nav>
+
+    <header class="max-w-5xl mx-auto pt-32 pb-20 px-8 text-center">
+        <span class="inline-block px-4 py-1.5 mb-6 text-[11px] font-bold tracking-widest uppercase bg-blue-50 text-blue-600 rounded-full animated-text">New Projects Added Weekly</span>
+        <h1 class="text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-8">
+            <span class="animated-text">Move fast.</span> <br/>
+            <span class="animated-highlight">Be Ahead.</span>
+        </h1>
+        <p class="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed animated-desc">The ultimate catalog of programming projects. From your first 'Hello World' to production-ready systems.</p>
+    </header>
+
+    <!-- Code Showcase Section -->
+    <section class="max-w-7xl mx-auto px-8 pb-24">
+        <h2 class="text-center text-3xl font-extrabold text-slate-900 mb-12">Featured Code Examples</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Python Example -->
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-8 py-6 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900">Python Weather API</h3>
+                    <p class="text-sm text-slate-500 mt-1">Real-time data fetching</p>
+                </div>
+                <pre class="p-8 bg-slate-900 text-slate-100 code-font text-sm overflow-x-auto"><code>import requests
+
+def get_weather():
+    response = requests.get(
+        "https://api.weather.gov/..."
+    )
+    data = response.json()
+    return data['properties']
+
+weather = get_weather()
+print(f"Temp: {weather}")</code></pre>
+            </div>
+
+            <!-- JavaScript Example -->
+            <div class="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 px-8 py-6 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900">JavaScript Dashboard</h3>
+                    <p class="text-sm text-slate-500 mt-1">Interactive UI components</p>
+                </div>
+                <pre class="p-8 bg-slate-900 text-slate-100 code-font text-sm overflow-x-auto"><code>const dashboard = {
+    updateMetrics(data) {
+        return {
+            users: data.count,
+            revenue: data.total * 100,
+            growth: data.trend
+        };
+    },
+    render() {
+        console.log("Dashboard updated");
+    }
+};
+
+dashboard.render();</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-8 pb-32">
+        <div id="language-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- JavaScript will inject cards here or you can manually paste the 7 cards -->
+        </div>
+    </main>
+
+    <script>
+        const languages = [
+            { name: 'Python', id: 'python', color: 'blue', icon: 'Py', desc: 'AI, Data, and Backend.' },
+            { name: 'JavaScript', id: 'js', color: 'yellow', icon: 'JS', desc: 'Web & App Interfaces.' },
+            { name: 'C++', id: 'cpp', color: 'indigo', icon: 'C+', desc: 'Systems & Game Engines.' },
+            { name: 'Java', id: 'java', color: 'red', icon: 'Ja', desc: 'Enterprise & Android.' },
+            { name: 'C#', id: 'csharp', color: 'purple', icon: 'C#', desc: 'Unity & Desktop Apps.' },
+            { name: 'Rust', id: 'rust', color: 'orange', icon: 'Rs', desc: 'Performance & Safety.' },
+            { name: 'HTML', id: 'html', color: 'cyan', icon: '</>', desc: 'Web Layout & Design.' }
+        ];
+
+        const grid = document.getElementById('language-grid');
+        const colorClasses = {
+            blue: 'bg-blue-50 text-blue-600',
+            yellow: 'bg-yellow-50 text-yellow-600',
+            indigo: 'bg-indigo-50 text-indigo-600',
+            red: 'bg-red-50 text-red-600',
+            purple: 'bg-purple-50 text-purple-600',
+            orange: 'bg-orange-50 text-orange-600',
+            cyan: 'bg-cyan-50 text-cyan-600'
+        };
+
+        languages.forEach(lang => {
+            grid.innerHTML += `
+                <a href="project.html?lang=${lang.id}" class="group p-10 bg-white border border-slate-100 rounded-[2.5rem] card-glow hover:-translate-y-3 transition-all duration-500">
+                    <div class="w-16 h-16 ${colorClasses[lang.color]} rounded-2xl flex items-center justify-center font-black text-2xl mb-12 group-hover:scale-110 transition-transform tracking-tighter">${lang.icon}</div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">${lang.name}</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-8">${lang.desc}</p>
+                    <div class="flex items-center text-xs font-bold text-blue-600 uppercase tracking-widest">
+                        Browse Track <span class="ml-2 group-hover:translate-x-2 transition-transform">→</span>
+                    </div>
+                </a>
+            `;
+        });
+    </script>
+
+    <footer class="mt-20 border-t border-gray-100">
+      <div class="mx-auto max-w-7xl py-6 text-center">
+        <p class="text-[10px] tracking-[0.3em] uppercase text-gray-500">
+          DEVELOPED BY <span class="text-blue-600">AYUSH TIWARY</span>
+        </p>
+      </div>
+    </footer>
+</body>
+</html>
