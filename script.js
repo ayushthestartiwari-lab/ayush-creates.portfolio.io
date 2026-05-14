@@ -1,11 +1,13 @@
-const DB = [
-    { id: 1, title: "QUANTUM_SCRAPER", lang: "Python", diff: "Advanced", info: "High-concurrency data harvesting engine." },
-    { id: 2, title: "VOID_SHELL", lang: "Rust", diff: "Advanced", info: "Unix-based memory-safe terminal implementation." },
-    { id: 3, title: "NEO_CORE", lang: "Go", diff: "Beginner", desc: "Minimalist microservice boilerplate." },
-    { id: 4, title: "NIGHT_VISION", lang: "JavaScript", diff: "Advanced", info: "Real-time edge detection via WebCam." }
+const projectData = [
+    { title: "PY_SCRAPER", lang: "Python", diff: "Advanced", desc: "Automated engine for extracting high-volume financial data." },
+    { title: "RUST_FS", lang: "Rust", diff: "Advanced", desc: "Custom file system implementation focusing on safety and speed." },
+    { title: "GOLANG_API", lang: "Go", diff: "Beginner", desc: "Minimalist REST layer for cloud-native applications." },
+    { title: "NODE_DASH", lang: "JavaScript", diff: "Advanced", desc: "Real-time visualization of server-side metrics." },
+    { title: "CSS_ARCH", lang: "HTML", diff: "Beginner", desc: "Design system architecture for enterprise platforms." },
+    { title: "JAVA_CORE", lang: "Java", diff: "Advanced", desc: "Distributed system logic for high-concurrency environments." }
 ];
 
-let currentFilters = { lang: 'All', diff: 'All' };
+let filters = { lang: 'All', diff: 'All' };
 
 function nav(id) {
     document.querySelectorAll('.screen').forEach(s => {
@@ -22,12 +24,9 @@ function nav(id) {
 }
 
 function setFilter(type, value, el) {
-    currentFilters[type] = value;
-    
-    // UI selection visual
+    filters[type] = value;
     el.parentElement.querySelectorAll('li').forEach(item => item.classList.remove('active'));
     el.classList.add('active');
-    
     render();
 }
 
@@ -35,20 +34,22 @@ function render() {
     const grid = document.getElementById('project-grid');
     grid.innerHTML = '';
 
-    const results = DB.filter(p => {
-        return (currentFilters.lang === 'All' || p.lang === currentFilters.lang) &&
-               (currentFilters.diff === 'All' || p.diff === currentFilters.diff);
+    const filtered = projectData.filter(p => {
+        const l = filters.lang === 'All' || p.lang === filters.lang;
+        const d = filters.diff === 'All' || p.diff === filters.diff;
+        return l && d;
     });
 
-    results.forEach(p => {
+    filtered.forEach((p, i) => {
         const card = document.createElement('div');
         card.className = 'card';
+        card.style.transitionDelay = `${i * 0.05}s`;
         card.innerHTML = `
-            <div style="font-family:monospace; color:rgba(255,255,255,0.4); font-size:10px; margin-bottom:1rem;">
-                ${p.lang} // ${p.diff.toUpperCase()}
+            <div style="font-size:10px; font-weight:900; margin-bottom:1rem; color:#888;">
+                ${p.lang.toUpperCase()} // ${p.diff.toUpperCase()}
             </div>
-            <h3 style="letter-spacing:-1px; margin:0 0 10px 0;">${p.title}</h3>
-            <p style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5;">${p.info || "No data provided for this module."}</p>
+            <h3>${p.title}</h3>
+            <p>${p.desc}</p>
         `;
         grid.appendChild(card);
     });

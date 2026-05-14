@@ -1,37 +1,32 @@
 :root {
-    --bg: #050505;
-    --accent: #ffffff;
-    --card-bg: #111111;
-    --border: rgba(255,255,255,0.1);
-    --font-mono: 'Courier New', Courier, monospace;
+    --white: #ffffff;
+    --black: #000000;
+    --gray-light: #f9f9f9;
+    --border: #eeeeee;
+    --text-muted: #888888;
 }
 
-body, html {
+* {
+    box-sizing: border-box;
     margin: 0;
-    background: var(--bg);
-    color: var(--accent);
+    padding: 0;
+}
+
+body {
+    background: var(--white);
+    color: var(--black);
     font-family: 'Inter', sans-serif;
     overflow: hidden;
 }
 
-/* Background Texture */
-.noise {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0.03;
-    background-image: url('https://grainy-gradients.vercel.app/noise.svg');
-}
-
-/* Screen Logic */
+/* SCREEN HANDLING */
 .screen {
     position: fixed;
     inset: 0;
     display: none;
     opacity: 0;
-    transition: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     padding: 2rem;
+    transition: opacity 0.5s ease-in-out;
 }
 
 .screen.active {
@@ -39,87 +34,130 @@ body, html {
     opacity: 1;
 }
 
-/* Typography */
-.reveal-text {
+/* LANDING */
+#home {
+    justify-content: center;
+    align-items: center;
+}
+
+.reveal {
     font-size: clamp(4rem, 12vw, 10rem);
     font-weight: 900;
-    letter-spacing: -0.05em;
     line-height: 0.8;
+    letter-spacing: -6px;
+    text-transform: uppercase;
 }
 
 .offset {
-    margin-left: 4rem;
+    margin-left: 10vw;
     color: transparent;
-    -webkit-text-stroke: 1px var(--accent);
+    -webkit-text-stroke: 1.5px var(--black);
 }
 
-/* Bento Grid */
-.explorer-ui {
+.nav-btn {
+    margin-top: 4rem;
+    padding: 1.2rem 3rem;
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.nav-btn:hover {
+    letter-spacing: 4px;
+    opacity: 0.8;
+}
+
+/* EXPLORER LAYOUT */
+.explorer-layout {
     display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 2rem;
+    grid-template-columns: 240px 1fr;
+    gap: 3rem;
     width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.sidebar {
+    border-right: 1px solid var(--border);
+    padding-right: 2rem;
+}
+
+.label {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    letter-spacing: 2px;
+}
+
+.filter-section {
+    margin-bottom: 3rem;
+}
+
+ul {
+    list-style: none;
+}
+
+li {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 0;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: 0.2s;
+}
+
+li.active, li:hover {
+    color: var(--black);
+    transform: translateX(5px);
+}
+
+/* PROJECT GRID */
+.main-content {
+    overflow-y: auto;
+    height: 85vh;
+    padding-right: 1rem;
 }
 
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
-    height: 85vh;
-    overflow-y: auto;
+    gap: 1.5rem;
 }
 
 .card {
-    background: var(--card-bg);
     border: 1px solid var(--border);
-    padding: 1.5rem;
+    padding: 2.5rem;
     border-radius: 4px;
-    transition: 0.3s;
-    position: relative;
-    overflow: hidden;
+    transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card:hover {
-    border-color: var(--accent);
-    background: #161616;
+    background: var(--gray-light);
+    border-color: var(--black);
 }
 
-.card::before {
-    content: "PROJECT_LOG";
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    font-size: 10px;
-    color: rgba(255,255,255,0.2);
-    font-family: var(--font-mono);
+.card h3 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
 }
 
-/* Cyber Button */
-.cybr-btn {
-    margin-top: 3rem;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    padding: 1rem 2rem;
-    font-weight: bold;
-    font-family: var(--font-mono);
-    cursor: pointer;
-    clip-path: polygon(0 0, 100% 0, 100% 70%, 85% 100%, 0 100%);
-}
-
-.sidebar ul {
-    list-style: none;
-    padding: 0;
-}
-
-.sidebar li {
-    padding: 10px 0;
-    font-family: var(--font-mono);
-    cursor: pointer;
-    color: rgba(255,255,255,0.4);
+.card p {
     font-size: 14px;
+    color: #444;
+    line-height: 1.6;
 }
 
-.sidebar li.active, .sidebar li:hover {
-    color: var(--accent);
+.back-link {
+    margin-top: 2rem;
+    background: none;
+    border: none;
+    font-weight: 900;
+    cursor: pointer;
 }

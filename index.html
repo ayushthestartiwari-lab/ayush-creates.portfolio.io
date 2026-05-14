@@ -5,58 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BE AHEAD // Labs</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Grainy texture overlay for premium feel -->
-    <div class="noise"></div>
 
     <main id="app">
-        <!-- SCREEN 1: THE HERO -->
+        <!-- SCREEN 1: LANDING -->
         <section id="home" class="screen active">
-            <nav class="top-nav">
-                <span class="logo">BE AHEAD</span>
-                <span class="status">SYSTEM_READY</span>
-            </nav>
-            
-            <div class="hero-center">
-                <div class="v-stack">
-                    <h1 class="reveal-text">MOVE FAST</h1>
-                    <h1 class="reveal-text offset">BE AHEAD</h1>
+            <div class="hero">
+                <div class="quote-wrap">
+                    <h1 class="reveal">MOVE FAST</h1>
+                    <h1 class="reveal offset">BE AHEAD</h1>
                 </div>
-                <button class="cybr-btn" onclick="nav('explorer')">
-                    LAUNCH_EXPLORER<span aria-hidden>_</span>
-                </button>
+                <button class="nav-btn" onclick="nav('explorer')">ENTER_PROJECTS</button>
             </div>
         </section>
 
-        <!-- SCREEN 2: THE EXPLORER -->
+        <!-- SCREEN 2: EXPLORER -->
         <section id="explorer" class="screen">
-            <div class="explorer-ui">
+            <div class="explorer-layout">
                 <aside class="sidebar">
-                    <div class="filter-group">
-                        <label>STACK</label>
+                    <div class="logo-small">BE AHEAD</div>
+                    <div class="filter-section">
+                        <p class="label">LANGUAGE</p>
                         <ul id="lang-list">
-                            <li class="active" onclick="setFilter('lang', 'All', this)">ALL_DEPS</li>
+                            <li class="active" onclick="setFilter('lang', 'All', this)">ALL</li>
                             <li onclick="setFilter('lang', 'Python', this)">PYTHON</li>
-                            <li onclick="setFilter('lang', 'Rust', this)">RUST</li>
+                            <li onclick="setFilter('lang', 'Java', this)">JAVA</li>
+                            <li onclick="setFilter('lang', 'JavaScript', this)">JAVASCRIPT</li>
                             <li onclick="setFilter('lang', 'Go', this)">GOLANG</li>
-                            <li onclick="setFilter('lang', 'JavaScript', this)">JS_TS</li>
+                            <li onclick="setFilter('lang', 'Rust', this)">RUST</li>
                         </ul>
                     </div>
-                    <div class="filter-group">
-                        <label>TIER</label>
+                    <div class="filter-section">
+                        <p class="label">LEVEL</p>
                         <ul id="diff-list">
-                            <li class="active" onclick="setFilter('diff', 'All', this)">LEVEL_ANY</li>
-                            <li onclick="setFilter('diff', 'Beginner', this)">L1_CORE</li>
-                            <li onclick="setFilter('diff', 'Advanced', this)">L2_ADVANCED</li>
+                            <li class="active" onclick="setFilter('diff', 'All', this)">ANY</li>
+                            <li onclick="setFilter('diff', 'Beginner', this)">BEGINNER</li>
+                            <li onclick="setFilter('diff', 'Advanced', this)">ADVANCED</li>
                         </ul>
                     </div>
-                    <button class="back-btn" onclick="nav('home')">TERMINATE_SESSION</button>
+                    <button class="back-link" onclick="nav('home')">← EXIT</button>
                 </aside>
 
-                <div class="content-area">
+                <div class="main-content">
                     <div id="project-grid" class="bento-grid">
-                        <!-- JS Injection -->
+                        <!-- Projects injected here -->
                     </div>
                 </div>
             </div>
