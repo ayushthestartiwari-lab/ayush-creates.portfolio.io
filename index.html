@@ -29,7 +29,7 @@
 
   <!-- Main Content -->
   <main class="max-w-6xl mx-auto p-6">
-    <!-- Language Grid -->
+    <!-- Language Grid (populated by script.js) -->
     <div id="language-grid" class="grid md:grid-cols-3 gap-6"></div>
 
     <!-- New Section: Why Be Ahead -->
@@ -43,9 +43,8 @@
     </section>
   </main>
 
-  <!-- Script -->
+  <!-- Scroll Animation Script -->
   <script>
-    // Reveal animation when section scrolls into view
     document.addEventListener("scroll", () => {
       const section = document.getElementById("why-beahead");
       const rect = section.getBoundingClientRect();
@@ -55,7 +54,7 @@
     });
   </script>
 
-  <!-- External Script -->
+  <!-- Your existing dynamic content script -->
   <script src="script.js"></script>
 </body>
 </html>
