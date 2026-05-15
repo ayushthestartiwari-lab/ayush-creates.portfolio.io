@@ -1,62 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BE AHEAD // Labs</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be Ahead.</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+  <header>
+    <div class="site-title">Be Ahead.</div>
+  </header>
 
-    <main id="app">
-        <!-- SCREEN 1: LANDING -->
-        <section id="home" class="screen active">
-            <div class="hero">
-                <div class="quote-wrap">
-                    <h1 class="reveal">MOVE FAST</h1>
-                    <h1 class="reveal offset">BE AHEAD</h1>
-                </div>
-                <button class="nav-btn" onclick="nav('explorer')">ENTER_PROJECTS</button>
-            </div>
-        </section>
+  <main>
 
-        <!-- SCREEN 2: EXPLORER -->
-        <section id="explorer" class="screen">
-            <div class="explorer-layout">
-                <aside class="sidebar">
-                    <div class="logo-small">BE AHEAD</div>
-                    <div class="filter-section">
-                        <p class="label">LANGUAGE</p>
-                        <ul id="lang-list">
-                            <li class="active" onclick="setFilter('lang', 'All', this)">ALL</li>
-                            <li onclick="setFilter('lang', 'Python', this)">PYTHON</li>
-                            <li onclick="setFilter('lang', 'Java', this)">JAVA</li>
-                            <li onclick="setFilter('lang', 'JavaScript', this)">JAVASCRIPT</li>
-                            <li onclick="setFilter('lang', 'Go', this)">GOLANG</li>
-                            <li onclick="setFilter('lang', 'Rust', this)">RUST</li>
-                        </ul>
-                    </div>
-                    <div class="filter-section">
-                        <p class="label">LEVEL</p>
-                        <ul id="diff-list">
-                            <li class="active" onclick="setFilter('diff', 'All', this)">ANY</li>
-                            <li onclick="setFilter('diff', 'Beginner', this)">BEGINNER</li>
-                            <li onclick="setFilter('diff', 'Advanced', this)">ADVANCED</li>
-                        </ul>
-                    </div>
-                    <button class="back-link" onclick="nav('home')">← EXIT</button>
-                </aside>
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1 class="animated-text">
+        <span class="stacked">MOVE FAST</span><br>
+        <span class="stacked">BE AHEAD.</span>
+      </h1>
 
-                <div class="main-content">
-                    <div id="project-grid" class="bento-grid">
-                        <!-- Projects injected here -->
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+      <p class="quote fade-in">
+        "Programming is the new literacy of the modern world."
+      </p>
+    </section>
 
-    <script src="script.js"></script>
+    <!-- Code Gallery -->
+    <section class="code-gallery">
+      <h2>Code in Action</h2>
+
+      <div class="images">
+
+        <img 
+          src="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?q=80&w=1200&auto=format&fit=crop" 
+          alt="Python code screenshot"
+        >
+
+        <img 
+          src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" 
+          alt="JavaScript code screenshot"
+        >
+
+      </div>
+    </section>
+
+    <!-- Language Cards -->
+    <section class="languages">
+      <h2>Choose Your Language</h2>
+
+      <div class="cards">
+        <a href="python.html" class="language-card bounce">Python</a>
+
+        <a href="javascript.html" class="language-card bounce">JavaScript</a>
+
+        <a href="java.html" class="language-card bounce">Java</a>
+
+        <a href="html.html" class="language-card bounce">HTML</a>
+
+        <a href="go.html" class="language-card bounce">Go</a>
+
+        <a href="rust.html" class="language-card bounce">Rust</a>
+      </div>
+    </section>
+
+    <!-- Why Be Ahead Section -->
+    <section class="why fade-in">
+      <h2>Why Be Ahead?</h2>
+
+      <p>
+        🚀 Learn faster, build smarter, and stay ahead of the curve.<br>
+        🌍 Connect with modern technologies that shape the future.<br>
+        💡 Gain practical skills through projects that matter.<br>
+        🔥 Prepare yourself for competitions, internships, and real-world challenges.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p class="fade-in">developed by Ayush Tiwary</p>
+  </footer>
+
 </body>
 </html>

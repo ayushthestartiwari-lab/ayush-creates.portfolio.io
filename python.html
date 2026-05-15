@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Python - Be Ahead.</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><div class="site-title">Be Ahead.</div></header>
+  <main>
+    <h1 class="page-title">Python</h1>
+    <p class="quote">"Simple, powerful, and beginner‑friendly."</p>
+
+    <section class="section fade-in">
+      <h2>Levels</h2>
+      <p>Beginner • Intermediate • Advanced</p>
+    </section>
+
+    <section class="section fade-in">
+      <h2>Learning Path</h2>
+      <p>Learning → Implementing → Basics → Advanced</p>
+    </section>
+
+    <section class="section fade-in">
+      <h2>Python Projects</h2>
+      <div class="project bounce">
+        <h3>Beginner: Calculator</h3>
+        <pre><code>
+def add(a, b):
+    return a + b
+print(add(5, 3))
+        </code></pre>
+      </div>
+      <div class="project bounce">
+        <h3>Intermediate: Web Scraper</h3>
+        <pre><code>
+import requests, bs4
+res = requests.get("https://example.com")
+soup = bs4.BeautifulSoup(res.text, "html.parser")
+print(soup.title.text)
+        </code></pre>
+      </div>
+    </section>
+  </main>
+  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+</body>
+</html>

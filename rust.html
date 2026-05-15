@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rust - Be Ahead.</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="site-title">Be Ahead.</div>
+  </header>
+
+  <main>
+    <!-- Page Title -->
+    <h1 class="page-title">Rust</h1>
+    <p class="quote">"Safe, fast, and empowering systems programming."</p>
+
+    <!-- Levels -->
+    <section class="section fade-in">
+      <h2>Levels</h2>
+      <p>Beginner • Intermediate • Advanced</p>
+    </section>
+
+    <!-- Learning Path -->
+    <section class="section fade-in">
+      <h2>Learning Path</h2>
+      <p>Ownership → Borrowing → Lifetimes → Advanced Concurrency</p>
+    </section>
+
+    <!-- Projects -->
+    <section class="section fade-in">
+      <h2>Rust Projects</h2>
+
+      <div class="project bounce">
+        <h3>Beginner: Hello World</h3>
+        <pre><code>
+fn main() {
+    println!("Hello, Rust!");
+}
+        </code></pre>
+      </div>
+
+      <div class="project bounce">
+        <h3>Intermediate: File Reader</h3>
+        <pre><code>
+use std::fs;
+
+fn main() {
+    let contents = fs::read_to_string("test.txt")
+        .expect("Unable to read file");
+    println!("{}", contents);
+}
+        </code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="fade-in">developed by Ayush Tiwary</p>
+  </footer>
+</body>
+</html>

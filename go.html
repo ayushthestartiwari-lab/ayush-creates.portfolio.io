@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Go - Be Ahead.</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><div class="site-title">Be Ahead.</div></header>
+  <main>
+    <h1 class="page-title">Go</h1>
+    <p class="quote">"Fast, efficient, and built for scale."</p>
+
+    <section class="section fade-in">
+      <h2>Levels</h2>
+      <p>Beginner • Intermediate • Advanced</p>
+    </section>
+
+    <section class="section fade-in">
+      <h2>Learning Path</h2>
+      <p>Basics → Goroutines → Channels → Concurrency</p>
+    </section>
+
+    <section class="section fade-in">
+      <h2>Go Projects</h2>
+      <div class="project bounce">
+        <h3>Beginner: Hello World</h3>
+        <pre><code>
+package main
+import "fmt"
+func main() {
+    fmt.Println("Hello, Go!")
+}
+        </code></pre>
+      </div>
+      <div class="project bounce">
+        <h3>Intermediate: Web Server</h3>
+        <pre><code>
+package main
+import (
+    "fmt"
+    "net/http"
+)
+func handler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hello, Web!")
+}
+func main() {
+    http.HandleFunc("/", handler)
+    http.ListenAndServe(":8080", nil)
+}
+        </code></pre>
+      </div>
+    </section>
+  </main>
+  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+</body>
+</html>
