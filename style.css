@@ -84,7 +84,7 @@ nav a:hover {
   padding: 15px 35px;
   border-radius: 40px;
 
-  background: linear-gradient(90deg, #ff6a00, #ee0979);
+  background: linear-gradient(90deg, #ff0000, #ee0979);
 
   color: white;
   text-decoration: none;
@@ -109,7 +109,7 @@ nav a:hover {
 .code-gallery h2 {
   margin-bottom: 30px;
   font-size: 32px;
-  color: #ff6a00;
+  color: #7c0993;
 
   animation: fadeInUp 2s ease forwards;
 }
@@ -510,5 +510,80 @@ pre {
 
   .why p {
     font-size: 18px;
+  }
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+  /* Navigation */
+  nav {
+    text-align: center;
+  }
+  nav a {
+    display: block;
+    margin: 10px 0;
+    font-size: 18px; /* bigger tap targets */
+  }
+
+  /* Hero */
+  .hero h1 {
+    font-size: 45px;
+  }
+  .quote {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .hero-btn {
+    padding: 12px 25px;
+    font-size: 16px;
+  }
+
+  /* Code Gallery */
+  .code-gallery .images {
+    flex-direction: column;
+    align-items: center;
+  }
+  .code-gallery img {
+    width: 90%;
+  }
+
+  /* Language Cards */
+  .language-card {
+    width: 90%;
+    font-size: 22px;   /* larger text for mobile */
+    padding: 20px;
+  }
+
+  /* Languages Section Heading */
+  .languages h2 {
+    font-size: 28px;
+  }
+
+  /* Why Section */
+  .why {
+    margin: 40px 20px;
+    padding: 30px;
+  }
+  .why h2 {
+    font-size: 30px;
+  }
+  .why p {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+
+  /* Project Section */
+  .project {
+    max-width: 95%;
+    padding: 15px;
+    font-size: 18px;   /* increase readability */
+  }
+  .project h3 {
+    font-size: 22px;
+  }
+
+  /* Footer */
+  footer {
+    font-size: 14px;
+    margin: 20px 0;
   }
 }
