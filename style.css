@@ -1,187 +1,189 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  scroll-behavior: smooth;
+/* --- 1. Global Reset & Body --- */
+body { 
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
+  margin: 0; 
+  padding: 0; 
+  background: #fafafa; 
+  color: #333;
 }
 
-html, body {
-  width: 100%;
-  overflow-x: hidden;
-}
-
-/* BODY (FIXED BACKGROUND) */
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #fdfcfb, #e2d1c3);
-  color: #222;
-}
-
-/* HEADER */
+/* --- 2. Thinner Header (Black) --- */
 header {
-  text-align: center;
-  padding: 20px;
-  font-size: 22px;
-  font-weight: bold;
-  background: linear-gradient(90deg, #ff6a00, #ee0979);
-  color: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: relative;
+  background-color: #0b0c10;
+  padding: 10px 0; /* Thin padding */
+  min-height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .site-title {
-  font-size: 26px;
-}
-
-/* HERO */
-.hero {
+  font-size: 1.8em;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
   text-align: center;
-  margin-top: 10vh;
-  padding: 20px;
 }
 
-.hero h1 {
-  font-size: 70px;
-  font-weight: 800;
-  background: linear-gradient(90deg, #00c6ff, #0072ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.logo-overlay {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  width: 100px;
+  height: auto;
 }
 
-.quote {
-  margin-top: 20px;
-  font-style: italic;
-  font-size: 20px;
-  color: #444;
+/* --- 3. Hero & Pictures Section --- */
+.hero { 
+  padding: 40px 20px; 
+  background: #1a1a1a; 
+  color: #fff; 
+  text-align: center; 
+}
+.hero h1 { color: #32cd32; font-size: 2.2em; margin: 0; }
+.hero .quote { font-style: italic; color: #ff8c00; margin-top: 10px; }
+
+.images { 
+  display: flex; 
+  justify-content: center; 
+  gap: 20px; 
+  padding: 30px 20px; 
+  flex-wrap: wrap; 
+}
+.images img { 
+  width: 45%; 
+  max-width: 400px; 
+  border-radius: 10px; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* CODE GALLERY */
-.code-gallery {
-  text-align: center;
-  margin: 80px 0;
+/* --- 4. Language Cards (Smaller & Centered) --- */
+.section-heading { 
+  text-align: center; 
+  margin: 30px 0 10px; 
+  font-size: 2em;
 }
 
-.code-gallery h2 {
-  font-size: 32px;
-  margin-bottom: 30px;
+.card-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important; 
+  gap: 15px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  max-width: 1200px;
 }
 
-.code-gallery .images {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  flex-wrap: wrap;
-}
-
-.code-gallery img {
-  width: 400px;
-  border-radius: 15px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-}
-
-/* LANGUAGES */
-.languages {
-  text-align: center;
-  padding: 20px;
-}
-
-.languages h2 {
-  font-size: 34px;
-  color: #0072ff;
-  margin-bottom: 40px;
-}
-
-/* CARDS */
-.cards {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 25px;
-  align-items: center;
-}
-
-/* LANGUAGE CARD (FIXED CENTER ISSUE) */
 .language-card {
-  background: linear-gradient(135deg, #ffecd2, #fcb69f);
-  padding: 25px 50px;
-  border-radius: 14px;
-  font-size: 20px;
-  font-weight: 600;
+  flex: 0 1 150px !important; /* Smaller size */
+  height: 120px !important;   /* Compact height */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
   text-decoration: none;
-  color: #222;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  transition: 0.3s ease;
-  cursor: pointer;
-}
-
-.language-card:hover {
-  transform: translateY(-8px);
-}
-
-/* BADGES */
-.level {
-  margin-top: 10px;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
   color: #fff;
+  transition: transform 0.2s ease;
 }
 
-.beginner {
-  background: linear-gradient(90deg, #00c853, #64dd17);
+.language-card:hover { transform: scale(1.05); }
+
+.language-card h3 { font-size: 1.1em !important; margin: 0 !important; }
+.language-card p { font-size: 0.8em !important; margin-top: 5px !important; }
+
+/* Card Colors */
+.language-card.python { background: #3776ab; }
+.language-card.javascript { background: #f7df1e; color: #333; }
+.language-card.java { background: #007396; }
+.language-card.go { background: #00add8; }
+.language-card.html { background: #e34c26; }
+.language-card.rust { background: #dea584; color: #333; }
+
+/* --- 5. Why Be Ahead Section --- */
+.why { 
+  padding: 40px 20px; 
+  background: #f0f0f0; 
+  display: flex; 
+  justify-content: center; 
+}
+.why-box { 
+  background: #fff; 
+  border-left: 6px solid #32cd32; 
+  padding: 25px; 
+  max-width: 700px; 
+  text-align: center; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.why-box p { line-height: 1.6; color: #444; margin: 0; font-size: 1.05em; }
+
+/* --- 6. Internal Page Content & Code Box (Centered) --- */
+.content-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center; /* Centering text on internal pages */
 }
 
-.intermediate {
-  background: linear-gradient(90deg, #ff9800, #ff5722);
+.content-container h1 { margin-bottom: 20px; }
+.content-container p { line-height: 1.8; color: #555; }
+
+/* Centers the entire code box on the page */
+.code-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 20px 0;
 }
 
-.advanced {
-  background: linear-gradient(90deg, #e53935, #8e24aa);
+/* Code Box Visuals */
+.code-box {
+  background-color: #1e1e1e;
+  color: #32cd32;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: left; /* Keep left-aligned inside for logic */
+  font-family: 'Courier New', monospace;
+  min-width: 300px;
+  max-width: 100%;
+  overflow-x: auto;
+  border-left: 5px solid #32cd32;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* WHY */
-.why {
-  text-align: center;
-  margin: 80px auto;
-  max-width: 750px;
-  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-  padding: 50px;
-  border-radius: 20px;
+/* --- 7. Footer --- */
+footer { 
+  background: #0b0c10; 
+  color: #777; 
+  padding: 20px; 
+  text-align: center; 
+  font-size: 0.9em;
 }
+footer strong { color: #32cd32; }
 
-/* FOOTER */
-footer {
-  text-align: center;
-  font-size: 14px;
-  margin: 40px 0 20px;
-}
-
-/* RESPONSIVE */
+/* --- 8. Responsive Fixes --- */
 @media (max-width: 768px) {
+  .images img { width: 90%; }
+  .logo-overlay { width: 80px; }
+}
 
-  .hero h1 {
-    font-size: 40px;
-  }
+.footer-link {
+  color: #32cd32; /* Your signature green */
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s ease;
+}
 
-  .cards {
-    flex-direction: column;
-  }
+.footer-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
 
-  .language-card {
-    width: 85%;
-    padding: 18px 25px;
-    font-size: 18px;
-  }
-
-  .code-gallery img {
-    width: 90%;
-  }
+footer p {
+  margin: 8px 0;
+  color: #bbb;
 }

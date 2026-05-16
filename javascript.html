@@ -3,48 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JavaScript - Be Ahead.</title>
+  <title>JavaScript Learning - Be Ahead</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header><div class="site-title">Be Ahead.</div></header>
-  <main>
-    <h1 class="page-title">JavaScript</h1>
+  <header>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">JavaScript</h1>
+    <nav style="margin-top: 10px;">
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
+      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
+      <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
+      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Learn JavaScript</h1>
     <p class="quote">"The language of the web."</p>
+  </section>
 
-    <section class="section fade-in">
-      <h2>Levels</h2>
-      <p>Beginner • Intermediate • Advanced</p>
+  <div class="content-container">
+
+    <section class="level beginner">
+      <h2>Beginner</h2>
+      <p>Start with simple JavaScript basics.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Hello World
+console.log("Hello, World!");
+
+// Variables
+let name = "Ayush";
+console.log("My name is " + name);
+        </code></pre>
+      </div>
     </section>
 
-    <section class="section fade-in">
-      <h2>Learning Path</h2>
-      <p>Basics → DOM → ES6 → Async Programming</p>
-    </section>
+    <section class="level intermediate">
+      <h2>Intermediate</h2>
+      <p>Work with DOM and functions.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// DOM manipulation
+document.body.style.backgroundColor = "lightblue";
 
-    <section class="section fade-in">
-      <h2>JavaScript Projects</h2>
-      <div class="project bounce">
-        <h3>Beginner: To‑Do List</h3>
-        <pre><code>
-const tasks = [];
-function addTask(task) {
-  tasks.push(task);
-  console.log("Task added:", task);
+// Function example
+function greet(user) {
+  return "Hello, " + user;
 }
-addTask("Learn JavaScript");
-        </code></pre>
-      </div>
-      <div class="project bounce">
-        <h3>Intermediate: Fetch API</h3>
-        <pre><code>
-fetch("https://jsonplaceholder.typicode.com/posts")
-  .then(res => res.json())
-  .then(data => console.log(data));
+console.log(greet("Ayush"));
         </code></pre>
       </div>
     </section>
-  </main>
-  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+
+    <section class="level advanced">
+      <h2>Advanced</h2>
+      <p>Build projects with frameworks and servers.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Simple Node.js server
+const http = require('http');
+http.createServer((req, res) => {
+  res.end("Hello from Node.js!");
+}).listen(3000);
+
+// React component example
+function Welcome() {
+  return &lt;h1&gt;Hello from React!&lt;/h1&gt;;
+}
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
+  </footer>
 </body>
 </html>

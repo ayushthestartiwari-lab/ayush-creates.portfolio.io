@@ -3,46 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Python - Be Ahead</title>
+  <title>Python Learning - Be Ahead</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header><div class="site-title">Be Ahead</div></header>
-  <main>
-    <h1 class="page-title">Python</h1>
-    <p class="quote">"Simple, powerful, and beginner‑friendly."</p>
+  <header>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">Python</h1>
+    <nav style="margin-top: 10px;">
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
+      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
+      <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
+      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+    </nav>
+  </header>
 
-    <section class="section fade-in">
-      <h2>Levels</h2>
-      <p>Beginner • Intermediate • Advanced</p>
-    </section>
+  <section class="hero">
+    <h1>Learn Python</h1>
+    <p class="quote">"Code today, innovate tomorrow."</p>
+  </section>
 
-    <section class="section fade-in">
-      <h2>Learning Path</h2>
-      <p>Learning → Implementing → Basics → Advanced</p>
-    </section>
+  <div class="content-container">
 
-    <section class="section fade-in">
-      <h2>Python Projects</h2>
-      <div class="project bounce">
-        <h3>Beginner: Calculator</h3>
-        <pre><code>
-def add(a, b):
-    return a + b
-print(add(5, 3))
+    <section class="level beginner">
+      <h2>Beginner</h2>
+      <p>Start with simple Python basics.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+# Hello World
+print("Hello, World!")
+
+# Simple calculator
+a = 5
+b = 3
+print("Sum:", a+b)
         </code></pre>
       </div>
-      <div class="project bounce">
-        <h3>Intermediate: Web Scraper</h3>
-        <pre><code>
-import requests, bs4
-res = requests.get("https://example.com")
-soup = bs4.BeautifulSoup(res.text, "html.parser")
-print(soup.title.text)
+    </section>
+
+    <section class="level intermediate">
+      <h2>Intermediate</h2>
+      <p>Work with functions and data structures.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+# Factorial using recursion
+def factorial(n):
+    return 1 if n==0 else n*factorial(n-1)
+
+print(factorial(5))
+
+# Dictionary example
+student = {"name":"Ayush","class":9}
+print(student["name"])
         </code></pre>
       </div>
     </section>
-  </main>
-  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+
+    <section class="level advanced">
+      <h2>Advanced</h2>
+      <p>Build projects with libraries.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+# Simple Flask web app
+from flask import Flask
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Welcome to Python Advanced!"
+
+if __name__ == "__main__":
+    app.run(debug=True)
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
+  </footer>
 </body>
 </html>

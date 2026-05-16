@@ -3,99 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Be Ahead - Learn Programming</title>
-
+  <title>Be Ahead</title>
   <link rel="stylesheet" href="style.css">
-</head>
+  <style>
+    /* Strictly Smaller & Centered cards */
+    .card-grid {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important; 
+      gap: 15px !important;
+      margin: 0 auto !important;
+      padding: 20px !important;
+    }
 
+    .language-card {
+      flex: 0 1 150px !important; 
+      height: 120px !important;   
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      padding: 10px !important;
+      border-radius: 8px !important;
+    }
+
+    .language-card h3 { font-size: 1.1em !important; margin: 0 !important; }
+    .language-card p { font-size: 0.8em !important; margin-top: 5px !important; }
+  </style>
+</head>
 <body>
 
   <header>
-    <div class="site-title">Be Ahead.</div>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">Be Ahead.</h1>
   </header>
 
-  <main>
+  <section class="hero">
+    <h1>MOVE FAST <br> BE AHEAD.</h1>
+    <p class="quote">"Stay ahead by learning and building."</p>
+  </section>
 
-    <!-- Hero -->
-    <section class="hero">
-      <h1>
-        MOVE FAST<br>
-        BE AHEAD.
-      </h1>
+  <section class="images">
+    <img src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop" alt="Coding">
+    <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop" alt="Code">
+  </section>
 
-      <p class="quote">
-        "Programming is the new literacy of the modern world."
-      </p>
-    </section>
+  <section class="languages">
+    <h2 class="section-heading">Programming Languages</h2>
+    <div class="card-grid">
+      <a href="python.html" class="language-card python"><h3>Python</h3><p>Basics to Pro</p></a>
+      <a href="javascript.html" class="language-card javascript"><h3>JavaScript</h3><p>Web Dev</p></a>
+      <a href="java.html" class="language-card java"><h3>Java</h3><p>OOP Apps</p></a>
+      <a href="go.html" class="language-card go"><h3>Go</h3><p>Backend</p></a>
+      <a href="html.html" class="language-card html"><h3>HTML</h3><p>Structure</p></a>
+      <a href="rust.html" class="language-card rust"><h3>Rust</h3><p>Systems</p></a>
+    </div>
+  </section>
 
-    <!-- Gallery -->
-    <section class="code-gallery">
-      <h2>Code in Action</h2>
-
-      <div class="images">
-        <img src="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?q=80&w=1200&auto=format&fit=crop" loading="lazy" alt="Python code">
-
-        <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" loading="lazy" alt="JavaScript code">
-      </div>
-    </section>
-
-    <!-- Languages -->
-    <section class="languages">
-      <h2>Choose Your Language</h2>
-
-      <div class="cards">
-
-        <a href="python.html" class="language-card">
-          Python
-          <span class="level beginner">Beginner</span>
-        </a>
-
-        <a href="javascript.html" class="language-card">
-          JavaScript
-          <span class="level intermediate">Intermediate</span>
-        </a>
-
-        <a href="java.html" class="language-card">
-          Java
-          <span class="level intermediate">Intermediate</span>
-        </a>
-
-        <a href="html.html" class="language-card">
-          HTML
-          <span class="level beginner">Beginner</span>
-        </a>
-
-        <a href="go.html" class="language-card">
-          Go
-          <span class="level advanced">Advanced</span>
-        </a>
-
-        <a href="rust.html" class="language-card">
-          Rust
-          <span class="level advanced">Advanced</span>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- Why -->
-    <section class="why">
-      <h2>Why Be Ahead?</h2>
-
+  <section class="why">
+    <div class="why-box">
+      <h2 class="why-heading">Why Be Ahead?</h2>
       <p>
-        🚀 Learn faster, build smarter, and stay ahead of the curve.<br>
-        🌍 Modern technologies for real-world skills.<br>
-        💡 Projects that matter.<br>
-        🔥 Prepare for future opportunities.
+        ⭐Because learning today builds tomorrow’s success. 
+        🔥At Be Ahead, you sharpen problem-solving skills, 
+        prepare for real-world projects, and stay ready for competitive exams. 
+        🚀Move fast, stay curious, and always be ahead.
+        😊"We don't just teach syntax; we help you bridge the gap between a blank screen and a working application."
       </p>
-    </section>
-
-  </main>
+    </div>
+  </section>
 
   <footer>
-    <p>Developed by Ayush Tiwary</p>
+    <p> For any queries, please mail us at:
+      <a> ayushtiwari3077@outlook.com
+      </a>
+    </p>
+    <p>Github: 
+    <a href="https://github.com/ayushthestartiwari-lab/ayush-creates.portfolio.io" target="_blank" class="footer-link">
+      ayush-creates.portfolio.io
+    </a>
+    <hr style="width: 50px; border: 0; border-top: 1px solid #32cd32; margin: 15px auto;">
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
   </footer>
-
 </body>
 </html>

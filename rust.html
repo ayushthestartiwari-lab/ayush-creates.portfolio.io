@@ -3,61 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rust - Be Ahead.</title>
+  <title>Rust Learning - Be Ahead</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <div class="site-title">Be Ahead.</div>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">Rust</h1>
+    <nav style="margin-top: 10px;">
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
+      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
+      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
+      <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
+      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+    </nav>
   </header>
 
-  <main>
-    <!-- Page Title -->
-    <h1 class="page-title">Rust</h1>
-    <p class="quote">"Safe, fast, and empowering systems programming."</p>
+  <section class="hero">
+    <h1>Learn Rust</h1>
+    <p class="quote">"Safety and speed combined."</p>
+  </section>
 
-    <!-- Levels -->
-    <section class="section fade-in">
-      <h2>Levels</h2>
-      <p>Beginner • Intermediate • Advanced</p>
-    </section>
+  <div class="content-container">
 
-    <!-- Learning Path -->
-    <section class="section fade-in">
-      <h2>Learning Path</h2>
-      <p>Ownership → Borrowing → Lifetimes → Advanced Concurrency</p>
-    </section>
-
-    <!-- Projects -->
-    <section class="section fade-in">
-      <h2>Rust Projects</h2>
-
-      <div class="project bounce">
-        <h3>Beginner: Hello World</h3>
-        <pre><code>
+    <section class="level beginner">
+      <h2>Beginner</h2>
+      <p>Start with simple Rust basics.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Hello World
 fn main() {
-    println!("Hello, Rust!");
+    println!("Hello, World!");
 }
-        </code></pre>
-      </div>
 
-      <div class="project bounce">
-        <h3>Intermediate: File Reader</h3>
-        <pre><code>
-use std::fs;
-
+// Variables and mutability
 fn main() {
-    let contents = fs::read_to_string("test.txt")
-        .expect("Unable to read file");
-    println!("{}", contents);
+    let mut count = 0;
+    count += 1;
+    println!("Count: {}", count);
 }
         </code></pre>
       </div>
     </section>
-  </main>
+
+    <section class="level intermediate">
+      <h2>Intermediate</h2>
+      <p>Work with ownership and borrowing.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Ownership example
+fn take_ownership(text: String) {
+    println!("Owned: {}", text);
+}
+
+fn main() {
+    let s = String::from("Ayush");
+    take_ownership(s);
+    // s is no longer valid here
+}
+
+// Borrowing example
+fn print_length(s: &String) {
+    println!("Length: {}", s.len());
+}
+
+fn main() {
+    let s = String::from("Hello");
+    print_length(&s);
+    println!("Still valid: {}", s);
+}
+        </code></pre>
+      </div>
+    </section>
+
+    <section class="level advanced">
+      <h2>Advanced</h2>
+      <p>Build projects with Rust’s ecosystem.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Simple Actix-web server
+use actix_web::{get, App, HttpServer, Responder};
+
+#[get("/")]
+async fn home() -> impl Responder {
+    "Hello from Rust Actix-web!"
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| App::new().service(home))
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await
+}
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
 
   <footer>
-    <p class="fade-in">developed by Ayush Tiwary</p>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
   </footer>
 </body>
 </html>

@@ -3,56 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Go - Be Ahead.</title>
+  <title>Go Learning - Be Ahead</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header><div class="site-title">Be Ahead.</div></header>
-  <main>
-    <h1 class="page-title">Go</h1>
-    <p class="quote">"Fast, efficient, and built for scale."</p>
+  <header>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">Go</h1>
+    <nav style="margin-top: 10px;">
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
+      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
+      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
+      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+    </nav>
+  </header>
 
-    <section class="section fade-in">
-      <h2>Levels</h2>
-      <p>Beginner • Intermediate • Advanced</p>
-    </section>
+  <section class="hero">
+    <h1>Learn Go</h1>
+    <p class="quote">"Fast, simple, and powerful."</p>
+  </section>
 
-    <section class="section fade-in">
-      <h2>Learning Path</h2>
-      <p>Basics → Goroutines → Channels → Concurrency</p>
-    </section>
+  <div class="content-container">
 
-    <section class="section fade-in">
-      <h2>Go Projects</h2>
-      <div class="project bounce">
-        <h3>Beginner: Hello World</h3>
-        <pre><code>
+    <section class="level beginner">
+      <h2>Beginner</h2>
+      <p>Start with simple Go basics.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Hello World
 package main
 import "fmt"
+
 func main() {
-    fmt.Println("Hello, Go!")
-}
-        </code></pre>
-      </div>
-      <div class="project bounce">
-        <h3>Intermediate: Web Server</h3>
-        <pre><code>
-package main
-import (
-    "fmt"
-    "net/http"
-)
-func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hello, Web!")
-}
-func main() {
-    http.HandleFunc("/", handler)
-    http.ListenAndServe(":8080", nil)
+  fmt.Println("Hello, World!")
 }
         </code></pre>
       </div>
     </section>
-  </main>
-  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+
+    <section class="level intermediate">
+      <h2>Intermediate</h2>
+      <p>Work with goroutines and concurrency.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Goroutines example
+package main
+import (
+  "fmt"
+  "time"
+)
+
+func printMessage(msg string) {
+  for i := 0; i < 3; i++ {
+    fmt.Println(msg)
+    time.Sleep(time.Millisecond * 500)
+  }
+}
+
+func main() {
+  go printMessage("Running in goroutine")
+  printMessage("Running in main")
+}
+        </code></pre>
+      </div>
+    </section>
+
+    <section class="level advanced">
+      <h2>Advanced</h2>
+      <p>Build projects with Go’s net/http package.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Simple web server
+package main
+import (
+  "fmt"
+  "net/http"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+  fmt.Fprintf(w, "Hello from Go server!")
+}
+
+func main() {
+  http.HandleFunc("/", handler)
+  fmt.Println("Server running on http://localhost:8080")
+  http.ListenAndServe(":8080", nil)
+}
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
+  </footer>
 </body>
 </html>

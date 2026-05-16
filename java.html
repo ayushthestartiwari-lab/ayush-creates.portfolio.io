@@ -3,30 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Java - Be Ahead.</title>
+  <title>Java Learning - Be Ahead</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header><div class="site-title">Be Ahead.</div></header>
-  <main>
-    <h1 class="page-title">Java</h1>
+  <header>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">Java</h1>
+    <nav style="margin-top: 10px;">
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
+      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
+      <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
+      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Learn Java</h1>
     <p class="quote">"Write once, run anywhere."</p>
+  </section>
 
-    <section class="section fade-in">
-      <h2>Levels</h2>
-      <p>Beginner • Intermediate • Advanced</p>
-    </section>
+  <div class="content-container">
 
-    <section class="section fade-in">
-      <h2>Learning Path</h2>
-      <p>Basics → OOP → Collections → Multithreading</p>
-    </section>
-
-    <section class="section fade-in">
-      <h2>Java Projects</h2>
-      <div class="project bounce">
-        <h3>Beginner: Hello World</h3>
-        <pre><code>
+    <section class="level beginner">
+      <h2>Beginner</h2>
+      <p>Start with simple Java basics.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Hello World
 public class Hello {
   public static void main(String[] args) {
     System.out.println("Hello, World!");
@@ -34,20 +39,55 @@ public class Hello {
 }
         </code></pre>
       </div>
-      <div class="project bounce">
-        <h3>Intermediate: File Reader</h3>
-        <pre><code>
-import java.io.*;
-public class ReadFile {
-  public static void main(String[] args) throws Exception {
-    BufferedReader br = new BufferedReader(new FileReader("test.txt"));
-    System.out.println(br.readLine());
+    </section>
+
+    <section class="level intermediate">
+      <h2>Intermediate</h2>
+      <p>Work with classes and objects.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Class and Object
+class Car {
+  String brand;
+  Car(String b){ brand = b; }
+  void drive(){ System.out.println("Driving " + brand); }
+}
+
+public class Main {
+  public static void main(String[] args) {
+    Car c = new Car("Tesla");
+    c.drive();
   }
 }
         </code></pre>
       </div>
     </section>
-  </main>
-  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+
+    <section class="level advanced">
+      <h2>Advanced</h2>
+      <p>Build projects with frameworks.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+// Spring Boot snippet (conceptual)
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+  @GetMapping("/")
+  public String home() {
+    return "Hello from Spring Boot!";
+  }
+}
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
+  </footer>
 </body>
 </html>

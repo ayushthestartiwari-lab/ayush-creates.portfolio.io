@@ -3,48 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HTML - Be Ahead.</title>
+  <title>HTML Learning - Be Ahead</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header><div class="site-title">Be Ahead.</div></header>
-  <main>
-    <h1 class="page-title">HTML</h1>
-    <p class="quote">"The backbone of the web."</p>
+  <header>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">HTML</h1>
+    <nav style="margin-top: 10px;">
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
+      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
+      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
+      <a href="go.html" style="color: white; text-decoration: none;">Go</a>
+    </nav>
+  </header>
 
-    <section class="section fade-in">
-      <h2>Levels</h2>
-      <p>Beginner • Intermediate • Advanced</p>
-    </section>
+  <section class="hero">
+    <h1>Learn HTML</h1>
+    <p class="quote">"The backbone of every website."</p>
+  </section>
 
-    <section class="section fade-in">
-      <h2>Learning Path</h2>
-      <p>Tags → Forms → Semantic HTML → Responsive Design</p>
-    </section>
+  <div class="content-container">
 
-    <section class="section fade-in">
-      <h2>HTML Projects</h2>
-      <div class="project bounce">
-        <h3>Beginner: Simple Page</h3>
-        <pre><code>
-<!DOCTYPE html>
-<html>
-<head><title>My Page</title></head>
-<body><h1>Hello World</h1></body>
-</html>
+    <section class="level beginner">
+      <h2>Beginner</h2>
+      <p>Start with basic tags and structure.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+&lt;!-- Basic HTML Structure --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;My First Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello World&lt;/h1&gt;
+  &lt;p&gt;This is my first paragraph.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
         </code></pre>
       </div>
-      <div class="project bounce">
-        <h3>Intermediate: Form</h3>
-        <pre><code>
-<form>
-  <input type="text" placeholder="Enter name">
-  <button type="submit">Submit</button>
-</form>
+    </section>
+
+    <section class="level intermediate">
+      <h2>Intermediate</h2>
+      <p>Learn about lists, tables, and links.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+&lt;!-- List and Link example --&gt;
+&lt;ul&gt;
+  &lt;li&gt;First Item&lt;/li&gt;
+  &lt;li&gt;Second Item&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;a href="https://www.google.com"&gt;Visit Google&lt;/a&gt;
         </code></pre>
       </div>
     </section>
-  </main>
-  <footer><p class="fade-in">developed by Ayush Tiwary</p></footer>
+
+    <section class="level advanced">
+      <h2>Advanced</h2>
+      <p>Forms, SEO, and Semantic HTML.</p>
+      <div class="code-wrapper">
+        <pre class="code-box"><code>
+&lt;!-- Form example --&gt;
+&lt;form action="/submit" method="POST"&gt;
+  &lt;label for="name"&gt;Name:&lt;/label&gt;
+  &lt;input type="text" id="name" name="user_name"&gt;
+  &lt;button type="submit"&gt;Send&lt;/button&gt;
+&lt;/form&gt;
+        </code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
+  </footer>
 </body>
 </html>
