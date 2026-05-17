@@ -257,3 +257,81 @@ footer p {
   padding: 10px;
   cursor: pointer;
 }
+
+.card,
+.language-card,
+.box {
+
+  position: relative;
+
+  overflow: hidden;
+
+  border-radius: 24px;
+
+  transition:
+    transform 0.5s ease,
+    box-shadow 0.5s ease,
+    border 0.5s ease;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.10);
+
+  backdrop-filter: blur(8px);
+}
+
+/* Premium Hover Effect */
+
+.card:hover,
+.language-card:hover,
+.box:hover {
+
+  transform:
+    translateY(-14px)
+    scale(1.025);
+
+  border: 1px solid rgba(108, 99, 255, 0.45);
+
+  box-shadow:
+    0 25px 50px rgba(108, 99, 255, 0.18),
+    0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Glow Sweep Animation */
+
+.card::before,
+.language-card::before,
+.box::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -120%;
+
+  width: 70%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      120deg,
+      transparent,
+      rgba(255,255,255,0.18),
+      transparent
+    );
+
+  transform: skewX(-25deg);
+
+  transition: 0.8s ease;
+}
+
+/* Moving Shine Effect */
+
+.card:hover::before,
+.language-card:hover::before,
+.box:hover::before {
+
+  left: 140%;
+}
