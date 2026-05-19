@@ -39,7 +39,8 @@ body::before {
 /* --- 2. Thinner Header (Black) --- */
 header {
   position: relative;
-  background-color: #0b0c10;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(26, 58, 82, 0.95));
+  border-bottom: 2px solid rgba(59, 130, 246, 0.4);
   padding: 10px 0; /* Thin padding */
   min-height: 50px;
   display: flex;
@@ -53,6 +54,7 @@ header {
   color: #ffffff;
   margin: 0;
   text-align: center;
+  animation: glow-pulse 3s ease-in-out infinite;
 }
 
 .logo-overlay {
@@ -62,30 +64,62 @@ header {
   transform: translateY(-50%);
   width: 100px;
   height: auto;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6));
+  transition: 0.3s ease;
+}
+
+.logo-overlay:hover {
+  filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.8));
 }
 
 /* --- 3. Hero & Pictures Section --- */
 .hero { 
   padding: 40px 20px; 
-  background: #1a1a1a; 
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 58, 95, 0.85));
   color: #fff; 
-  text-align: center; 
+  text-align: center;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+  animation: fadeInUp 1s ease-out 0.2s both;
 }
-.hero h1 { color: #32cd32; font-size: 2.2em; margin: 0; }
-.hero .quote { font-style: italic; color: #ff8c00; margin-top: 10px; }
+.hero h1 { 
+  color: #00d4ff; 
+  font-size: 2.2em; 
+  margin: 0;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+  font-weight: bold;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+.hero .quote { 
+  font-style: italic; 
+  color: #60a5fa; 
+  margin-top: 10px;
+  text-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
+  animation: fadeInUp 1s ease-out 0.4s both;
+}
 
 .images { 
   display: flex; 
   justify-content: center; 
   gap: 20px; 
   padding: 30px 20px; 
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(20, 50, 80, 0.75));
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  animation: fadeInUp 1s ease-out 0.4s both;
 }
 .images img { 
   width: 45%; 
   max-width: 400px; 
   border-radius: 10px; 
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 4px 8px rgba(0,0,0,0.3);
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  transition: all 0.5s ease;
+  animation: fadeInUp 1s ease-out 0.5s both;
+}
+
+.images img:hover {
+  transform: scale(1.05) translateY(-10px);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 10px 20px rgba(0,0,0,0.4);
 }
 
 /* --- 4. Language Cards (Smaller & Centered) --- */
@@ -93,6 +127,17 @@ header {
   text-align: center; 
   margin: 30px 0 10px; 
   font-size: 2em;
+  color: #ffffff;
+  font-weight: bold;
+  text-shadow: 
+    0 0 10px rgba(59, 130, 246, 0.8),
+    0 0 20px rgba(37, 99, 235, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 1px;
+  animation: fadeInUp 1s ease-out 0.4s both;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  padding: 10px 0;
+  border-radius: 8px;
 }
 
 .card-grid {
@@ -103,11 +148,14 @@ header {
   margin: 0 auto !important;
   padding: 20px !important;
   max-width: 1200px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(20, 50, 80, 0.6));
+  border-radius: 12px;
+  animation: fadeInUp 1s ease-out 0.5s both;
 }
 
 .language-card {
-  flex: 0 1 150px !important; /* Smaller size */
-  height: 120px !important;   /* Compact height */
+  flex: 0 1 150px !important;
+  height: 120px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -117,10 +165,21 @@ header {
   border-radius: 8px !important;
   text-decoration: none;
   color: #fff;
-  transition: transform 0.2s ease;
+  transition: all 0.4s ease;
+  animation: fadeInUp 1s ease-out both;
 }
 
-.language-card:hover { transform: scale(1.05); }
+.language-card:nth-child(1) { animation-delay: 0.6s; }
+.language-card:nth-child(2) { animation-delay: 0.7s; }
+.language-card:nth-child(3) { animation-delay: 0.8s; }
+.language-card:nth-child(4) { animation-delay: 0.9s; }
+.language-card:nth-child(5) { animation-delay: 1s; }
+.language-card:nth-child(6) { animation-delay: 1.1s; }
+
+.language-card:hover { 
+  transform: translateY(-8px) scale(1.08);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
+}
 
 .language-card h3 { font-size: 1.1em !important; margin: 0 !important; }
 .language-card p { font-size: 0.8em !important; margin-top: 5px !important; }
@@ -136,19 +195,42 @@ header {
 /* --- 5. Why Be Ahead Section --- */
 .why { 
   padding: 40px 20px; 
-  background: #f0f0f0; 
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(26, 58, 82, 0.9));
   display: flex; 
-  justify-content: center; 
+  justify-content: center;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+  animation: fadeInUp 1s ease-out 0.6s both;
 }
 .why-box { 
-  background: #fff; 
-  border-left: 6px solid #32cd32; 
+  background: rgba(30, 58, 95, 0.5);
+  border-left: 6px solid #00d4ff;
+  border: 2px solid rgba(59, 130, 246, 0.5);
   padding: 25px; 
   max-width: 700px; 
   text-align: center; 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+  border-radius: 10px;
+  transition: all 0.5s ease;
+  animation: fadeInUp 1s ease-out 0.7s both;
+  backdrop-filter: blur(10px);
 }
-.why-box p { line-height: 1.6; color: #444; margin: 0; font-size: 1.05em; }
+
+.why-box:hover {
+  box-shadow: 0 0 35px rgba(0, 212, 255, 0.6);
+  transform: translateY(-5px);
+  background: rgba(30, 58, 95, 0.7);
+}
+.why-box p { 
+  line-height: 1.6; 
+  color: #e0e7ff; 
+  margin: 0; 
+  font-size: 1.05em;
+}
+.why-box h2 {
+  color: #00d4ff;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+  animation: glow-pulse 3s ease-in-out infinite;
+}
 
 /* --- 6. Internal Page Content & Code Box (Centered) --- */
 .content-container {
@@ -186,13 +268,18 @@ header {
 
 /* --- 7. Footer --- */
 footer { 
-  background: #0b0c10; 
-  color: #777; 
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(26, 58, 82, 0.98));
+  color: #a0aec0; 
   padding: 20px; 
   text-align: center; 
   font-size: 0.9em;
+  border-top: 2px solid rgba(59, 130, 246, 0.4);
+  animation: fadeInUp 1s ease-out 0.8s both;
 }
-footer strong { color: #32cd32; }
+footer strong { color: #00d4ff; }
+footer a {
+  color: #60a5fa;
+}
 
 /* --- 8. Responsive Fixes --- */
 @media (max-width: 768px) {
