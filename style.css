@@ -1,10 +1,39 @@
-/* --- 1. Global Reset & Body --- */
 body { 
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
   margin: 0; 
   padding: 0; 
-  background: #fafafa; 
-  color: #333;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(59, 130, 246, 0.1) 2px,
+      rgba(59, 130, 246, 0.1) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(37, 99, 235, 0.1) 2px,
+      rgba(37, 99, 235, 0.1) 4px
+    ),
+    linear-gradient(135deg, #0f172a 0%, #1e3a5f 25%, #1a3a52 50%, #3b82f6 75%, #2563eb 100%);
+  background-attachment: fixed;
+  color: #2563eb;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(37, 99, 235, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* --- 2. Thinner Header (Black) --- */
@@ -335,3 +364,4 @@ footer p {
 
   left: 140%;
 }
+
