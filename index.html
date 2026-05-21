@@ -3,90 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Be Ahead</title>
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    /* Strictly Smaller & Centered cards */
-    .card-grid {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      justify-content: center !important; 
-      gap: 15px !important;
-      margin: 0 auto !important;
-      padding: 20px !important;
-    }
-
-    .language-card {
-      flex: 0 1 150px !important; 
-      height: 120px !important;   
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      text-align: center !important;
-      padding: 10px !important;
-      border-radius: 8px !important;
-    }
-
-    .language-card h3 { font-size: 1.1em !important; margin: 0 !important; }
-    .language-card p { font-size: 0.8em !important; margin-top: 5px !important; }
-  </style>
+  <title>Sign Up - Be Ahead</title>
+  <link rel="stylesheet" href="sign.css">
 </head>
 <body>
-
-  <header>
-    <img src="logo.jpg" alt="Logo" class="logo-overlay">
-    <h1 class="site-title">Be Ahead.</h1>
-  </header>
-
-  <section class="hero">
-    <h1>MOVE FAST <br> BE AHEAD.</h1>
-    <p class="quote">"Stay ahead by learning and building."</p>
-  </section>
-
-  <section class="images">
-    <img src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop" alt="Coding">
-    <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop" alt="Code">
-  </section>
-
-  <section class="languages">
-    <h2 class="section-heading">Programming Languages</h2>
-    <div class="card-grid">
-      <a href="python.html" class="language-card python"><h3>Python</h3><p>Basics to Pro</p></a>
-      <a href="javascript.html" class="language-card javascript"><h3>JavaScript</h3><p>Web Dev</p></a>
-      <a href="java.html" class="language-card java"><h3>Java</h3><p>OOP Apps</p></a>
-      <a href="go.html" class="language-card go"><h3>Go</h3><p>Backend</p></a>
-      <a href="html.html" class="language-card html"><h3>HTML</h3><p>Structure</p></a>
-      <a href="rust.html" class="language-card rust"><h3>Rust</h3><p>Systems</p></a>
+  <div class="container" id="container">
+    <div class="form-container sign-up">
+      <form action="home.html" method="get">
+        <h1>Create Account</h1>
+        <div class="social-icons">
+          <!-- Add your social icons here -->
+        </div>
+        <span>or use your email for registration</span>
+        <input type="text" placeholder="Name" required>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <button type="submit">Sign Up</button>
+      </form>
     </div>
-  </section>
-
-  <section class="why">
-    <div class="why-box">
-      <h2 class="why-heading">Why Be Ahead?</h2>
-      <p>
-        ⭐Because learning today builds tomorrow’s success. 
-        🔥At Be Ahead, you sharpen problem-solving skills, 
-        prepare for real-world projects, and stay ready for competitive exams. 
-        🚀Move fast, stay curious, and always be ahead.
-        😊"We don't just teach syntax; we help you bridge the gap between a blank screen and a working application."
-      </p>
+    <div class="form-container sign-in">
+      <form action="home.html" method="get">
+        <h1>Sign In</h1>
+        <div class="social-icons">
+          <!-- Add your social icons here -->
+        </div>
+        <span>or use your email password</span>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <a href="#">Forget Your Password?</a>
+        <button type="submit">Sign In</button>
+      </form>
     </div>
-  </section>
-
-  <footer>
-    <p> For any queries, please mail us at:
-      <a> ayushtiwari3077@outlook.com
-      </a>
-    </p>
-    <p>Github: 
-    <a href="https://github.com/ayushthestartiwari-lab/ayush-creates.portfolio.io" target="_blank" class="footer-link">
-      ayush-creates.portfolio.io
-    </a>
-    <hr style="width: 50px; border: 0; border-top: 1px solid #32cd32; margin: 15px auto;">
-    &copy; 2026 Be Ahead <br>
-    Developed by <strong>Ayush Tiwary</strong>
-  </footer>
-
-  
+    <div class="toggle-container">
+      <div class="toggle">
+        <div class="toggle-panel toggle-left">
+          <h1>Welcome Back!</h1>
+          <p>Enter your personal details to use all site features</p>
+          <button class="hidden" id="login">Sign In</button>
+        </div>
+        <div class="toggle-panel toggle-right">
+          <h1>Hello, Friend!</h1>
+          <p>Register with your personal details to start your journey</p>
+          <button class="hidden" id="register">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
