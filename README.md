@@ -1,8 +1,8 @@
 # ayush-creates.portfolio. Hi, I’m Ayush, a Class 9 student from Deoghar, India.
-I’m passionate about Python programming, JEE preparation, and building real-world tech solutions that make life easier.
+I’m passionate about Python programming, JEE preparation, and building real-world tech solutions that make life easier.And also a founder of Be Ahead.
 
 🚀 About Me
-🎓 Currently studying in Class 9 and preparing for JEE.
+🎓 Currently studying in Class 9 and preparing for JEE.Founder of Be Ahead.
 
 💻 Exploring coding projects like quiz apps, savings trackers, and bus route optimizers.
 
