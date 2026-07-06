@@ -2,36 +2,80 @@ body {
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
   margin: 0; 
   padding: 0; 
-  background: 
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(59, 130, 246, 0.1) 2px,
-      rgba(59, 130, 246, 0.1) 4px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(37, 99, 235, 0.1) 2px,
-      rgba(37, 99, 235, 0.1) 4px
-    ),
-    linear-gradient(135deg, #0f172a 0%, #1e3a5f 25%, #1a3a52 50%, #3b82f6 75%, #2563eb 100%);
-  background-attachment: fixed;
-  color: #2563eb;
+  background: #0a0f1c;
+  color: #e0e7ff;
   position: relative;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
-body::before {
-  content: "";
+/* Aurora / mesh gradient blobs */
+.aurora-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(37, 99, 235, 0.15) 0%, transparent 50%);
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-bg span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+}
+
+.aurora-bg span:nth-child(1) {
+  width: 500px;
+  height: 500px;
+  background: #3b82f6;
+  top: -10%;
+  left: -5%;
+  animation: drift1 22s ease-in-out infinite;
+}
+
+.aurora-bg span:nth-child(2) {
+  width: 600px;
+  height: 600px;
+  background: #7c3aed;
+  bottom: -15%;
+  right: -10%;
+  animation: drift2 26s ease-in-out infinite;
+}
+
+.aurora-bg span:nth-child(3) {
+  width: 400px;
+  height: 400px;
+  background: #00d4ff;
+  top: 40%;
+  left: 50%;
+  animation: drift3 30s ease-in-out infinite;
+}
+
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(15%, 20%) scale(1.15); }
+}
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-12%, -15%) scale(1.1); }
+}
+@keyframes drift3 {
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  50% { transform: translate(-50%, -10%) scale(1.2); }
+}
+
+/* Subtle grain texture over everything for depth */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: -1;
 }
@@ -451,4 +495,3 @@ footer p {
 
   left: 140%;
 }
-
