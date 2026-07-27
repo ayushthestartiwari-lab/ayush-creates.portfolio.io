@@ -1,150 +1,88 @@
-// api/beai.js
-// Vercel Serverless Function — proxies chat messages to the Gemini API,
-// with a per-visitor daily question limit backed by Upstash Redis.
-//
-// Required env vars (set in Vercel Project Settings → Environment Variables):
-//   GEMINI_API_KEY               — your Gemini API key
-//   UPSTASH_REDIS_REST_URL       — from your Upstash Redis database
-//   UPSTASH_REDIS_REST_TOKEN     — from your Upstash Redis database
+// beai.js — BeAI chatbot widget (client-side)
+// Talks only to our own /api/beai serverless function.
+// No API key ever lives in this file — that's the whole point.
 
-const DAILY_LIMIT = 15;
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("beai-chatbot");
+  const chatWindow = document.getElementById("beai-window");
+  const header = document.getElementById("beai-header");
+  const messagesEl = document.getElementById("beai-messages");
+  const input = document.getElementById("beai-input");
 
-const SYSTEM_PROMPT = `You are BeAI, the coding assistant built into the "Be Ahead" learning platform
-(be-ahead.vercel.app), which teaches Python, JavaScript, Java, Go, HTML, and Rust.
-Answer coding questions clearly and concisely, with short code examples when helpful.
-Keep answers focused and beginner-friendly unless the user's question is clearly advanced.
-If asked something unrelated to programming/learning, gently steer back to coding topics.`;
+  if (!toggleBtn || !chatWindow || !messagesEl || !input) return;
 
-// --- Upstash Redis REST helpers (no SDK needed, just fetch) ---
-async function redisIncrWithExpiry(key, ttlSeconds) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null; // Redis not configured — limiting disabled
+  // Conversation history kept in memory (per page load), sent to the
+  // API so BeAI has context across turns within this chat.
+  let history = [];
+  let isSending = false;
 
-  const headers = { Authorization: `Bearer ${token}` };
+  // Greet once
+  addMessage(
+    "model",
+    "Hey! I'm BeAI 👋 Ask me anything about Python, JavaScript, Java, Go, HTML, or Rust."
+  );
 
-  // INCR the key
-  const incrRes = await fetch(`${url}/incr/${encodeURIComponent(key)}`, { headers });
-  const incrData = await incrRes.json();
-  const count = incrData.result;
+  chatWindow.style.display = "none";
 
-  // First time this key is seen today — set it to expire
-  if (count === 1) {
-    await fetch(`${url}/expire/${encodeURIComponent(key)}/${ttlSeconds}`, { headers });
-  }
+  toggleBtn.addEventListener("click", () => {
+    const isOpen = chatWindow.style.display === "flex";
+    chatWindow.style.display = isOpen ? "none" : "flex";
+    if (!isOpen) input.focus();
+  });
 
-  return count;
-}
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
 
-function getVisitorId(req) {
-  const fwd = req.headers["x-forwarded-for"];
-  const ip = (Array.isArray(fwd) ? fwd[0] : fwd || "")
-    .split(",")[0]
-    .trim();
-  return ip || "unknown";
-}
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text || isSending) return;
 
-function getTodayKey(visitorId) {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  return `beai:count:${today}:${visitorId}`;
-}
+    addMessage("user", text);
+    input.value = "";
+    isSending = true;
 
-module.exports = async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
-    return;
-  }
+    const typingEl = addMessage("model", "Thinking…", true);
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ error: "Server misconfigured: missing GEMINI_API_KEY" });
-    return;
-  }
-
-  // --- Rate limit check ---
-  const visitorId = getVisitorId(req);
-  const key = getTodayKey(visitorId);
-  let count = null;
-  try {
-    count = await redisIncrWithExpiry(key, 60 * 60 * 26); // expire ~26h, covers timezone drift
-  } catch (err) {
-    console.error("Rate limit check failed, allowing request:", err);
-  }
-
-  if (count !== null && count > DAILY_LIMIT) {
-    res.status(429).json({
-      error: `You've hit today's limit of ${DAILY_LIMIT} questions. Come back tomorrow!`,
-      limitReached: true,
-    });
-    return;
-  }
-
-  // --- Parse body ---
-  let body = req.body;
-  if (typeof body === "string") {
     try {
-      body = JSON.parse(body);
-    } catch {
-      body = {};
-    }
-  }
-
-  const message = (body && body.message ? String(body.message) : "").trim();
-  const history = Array.isArray(body && body.history) ? body.history : [];
-
-  if (!message) {
-    res.status(400).json({ error: "Missing 'message' in request body" });
-    return;
-  }
-  if (message.length > 2000) {
-    res.status(400).json({ error: "Message too long (max 2000 characters)" });
-    return;
-  }
-
-  const contents = [
-    ...history
-      .filter((m) => m && (m.role === "user" || m.role === "model") && typeof m.text === "string")
-      .slice(-10)
-      .map((m) => ({ role: m.role, parts: [{ text: m.text.slice(0, 2000) }] })),
-    { role: "user", parts: [{ text: message }] },
-  ];
-
-  try {
-    const geminiRes = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
-      {
+      const res = await fetch("/api/beai", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 800,
-          },
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, history }),
+      });
+
+      const data = await res.json();
+      typingEl.remove();
+
+      if (!res.ok) {
+        addMessage("model", data.error || "Something went wrong. Please try again.");
+        if (data.limitReached) {
+          input.disabled = true;
+          input.placeholder = "Daily limit reached";
+        }
+      } else {
+        addMessage("model", data.reply);
+        history.push({ role: "user", text });
+        history.push({ role: "model", text: data.reply });
       }
-    );
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini API error:", geminiRes.status, errText);
-      res.status(502).json({ error: "Upstream AI service error" });
-      return;
+    } catch (err) {
+      typingEl.remove();
+      addMessage("model", "Network error — please check your connection and try again.");
+    } finally {
+      isSending = false;
     }
-
-    const data = await geminiRes.json();
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") ||
-      "Sorry, I couldn't generate a response. Please try again.";
-
-    const remaining = count !== null ? Math.max(DAILY_LIMIT - count, 0) : null;
-    res.status(200).json({ reply, remaining });
-  } catch (err) {
-    console.error("BeAI handler error:", err);
-    res.status(500).json({ error: "Something went wrong. Please try again." });
   }
-};
+
+  function addMessage(role, text, isTemp = false) {
+    const bubble = document.createElement("div");
+    bubble.className = `beai-msg beai-msg-${role}`;
+    bubble.textContent = text;
+    if (isTemp) bubble.classList.add("beai-msg-temp");
+    messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return bubble;
+  }
+});
