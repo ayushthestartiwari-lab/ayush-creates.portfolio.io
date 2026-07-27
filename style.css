@@ -56,7 +56,7 @@ body {
   background: #7c3aed;
   top: -10%;
   left: -5%;
-  animation: drift1 22s ease-in-out infinite;
+  transition: transform 0.15s ease-out;
 }
 
 .aurora-bg span:nth-child(2) {
@@ -65,7 +65,7 @@ body {
   background: #ec4899;
   bottom: -15%;
   right: -10%;
-  animation: drift2 26s ease-in-out infinite;
+  transition: transform 0.15s ease-out;
 }
 
 .aurora-bg span:nth-child(3) {
@@ -74,7 +74,7 @@ body {
   background: #f7a072;
   top: 40%;
   left: 50%;
-  animation: drift3 30s ease-in-out infinite;
+  transition: transform 0.15s ease-out;
 }
 
 /* Glowing "planet" — echoes the reference image's warm ringed sphere */
@@ -88,24 +88,12 @@ body {
   background: radial-gradient(circle at 35% 35%, #ffe4b8, #f7a072 40%, #d94f9c 72%, transparent 100%);
   box-shadow: 0 0 100px 25px rgba(247, 160, 114, 0.35);
   opacity: 0.85;
-  animation: drift3 34s ease-in-out infinite;
+  transition: transform 0.15s ease-out;
 }
 
 @keyframes twinkle {
   from { opacity: 0.45; }
   to { opacity: 0.85; }
-}
-@keyframes drift1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(15%, 20%) scale(1.15); }
-}
-@keyframes drift2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-12%, -15%) scale(1.1); }
-}
-@keyframes drift3 {
-  0%, 100% { transform: translate(-50%, 0) scale(1); }
-  50% { transform: translate(-50%, -10%) scale(1.2); }
 }
 
 /* Subtle grain texture over everything for depth */
@@ -224,28 +212,23 @@ header {
 }
 
 .card-grid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important; 
-  gap: 15px !important;
-  margin: 0 auto !important;
-  padding: 20px !important;
-  max-width: 1200px;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(20, 50, 80, 0.6));
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 820px;
   animation: fadeInUp 1s ease-out 0.5s both;
 }
 
 .language-card {
-  flex: 0 1 150px !important;
-  height: 120px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  padding: 10px !important;
-  border-radius: 8px !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 22px 30px;
+  border-radius: 14px;
   text-decoration: none;
   color: #fff;
   transition: all 0.4s ease;
@@ -259,13 +242,40 @@ header {
 .language-card:nth-child(5) { animation-delay: 1s; }
 .language-card:nth-child(6) { animation-delay: 1.1s; }
 
-.language-card:hover { 
-  transform: translateY(-8px) scale(1.08);
+.language-card:hover {
+  transform: translateX(6px);
   box-shadow: 0 0 25px rgba(217, 79, 156, 0.8);
 }
 
-.language-card h3 { font-size: 1.1em !important; margin: 0 !important; }
-.language-card p { font-size: 0.8em !important; margin-top: 5px !important; }
+.lang-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.language-card h3 { font-size: 1.35em; margin: 0; }
+.language-card p { font-size: 0.9em; margin: 0; opacity: 0.85; }
+.lang-tagline { opacity: 0.75; font-weight: normal; }
+
+.language-card::after {
+  content: "→";
+  font-size: 1.5em;
+  opacity: 0.6;
+  flex-shrink: 0;
+  margin-left: 16px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.language-card:hover::after {
+  transform: translateX(8px);
+  opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .language-card { padding: 16px 20px; }
+  .language-card h3 { font-size: 1.15em; }
+}
 
 /* Card Colors */
 .language-card.python { background: #3776ab; }
@@ -320,7 +330,7 @@ header {
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px;
-  text-align: center; /* Centering text on internal pages */
+  text-align: center;
 }
 
 .content-container h1 { margin-bottom: 20px; }
@@ -340,7 +350,7 @@ header {
   color: #32cd32;
   padding: 20px;
   border-radius: 8px;
-  text-align: left; /* Keep left-aligned inside for logic */
+  text-align: left;
   font-family: 'Courier New', monospace;
   min-width: 300px;
   max-width: 100%;
@@ -371,7 +381,7 @@ footer a {
 }
 
 .footer-link {
-  color: #32cd32; /* Your signature green */
+  color: #32cd32;
   text-decoration: none;
   font-weight: bold;
   transition: 0.3s ease;
@@ -425,7 +435,7 @@ footer p {
   background: #170a30;
   border: 1px solid rgba(217, 79, 156, 0.4);
   border-radius: 16px;
-  display: none; /* toggled to flex by beai.js */
+  display: none;
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 20px 45px rgba(0,0,0,0.45);
@@ -504,59 +514,41 @@ footer p {
 .card,
 .language-card,
 .box {
-
   position: relative;
-
   overflow: hidden;
-
   border-radius: 24px;
-
   transition:
     transform 0.5s ease,
     box-shadow 0.5s ease,
     border 0.5s ease;
-
   border: 1px solid rgba(255, 255, 255, 0.12);
-
-  box-shadow:
-    0 10px 25px rgba(0, 0, 0, 0.10);
-
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10);
   backdrop-filter: blur(8px);
 }
 
 /* Premium Hover Effect */
-
 .card:hover,
 .language-card:hover,
 .box:hover {
-
   transform:
     translateY(-14px)
     scale(1.025);
-
   border: 1px solid rgba(108, 99, 255, 0.45);
-
   box-shadow:
     0 25px 50px rgba(108, 99, 255, 0.18),
     0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 /* Glow Sweep Animation */
-
 .card::before,
 .language-card::before,
 .box::before {
-
   content: "";
-
   position: absolute;
-
   top: 0;
   left: -120%;
-
   width: 70%;
   height: 100%;
-
   background:
     linear-gradient(
       120deg,
@@ -564,17 +556,18 @@ footer p {
       rgba(255,255,255,0.18),
       transparent
     );
-
   transform: skewX(-25deg);
-
   transition: 0.8s ease;
 }
 
 /* Moving Shine Effect */
-
 .card:hover::before,
 .language-card:hover::before,
 .box:hover::before {
-
   left: 140%;
+}
+/* Row-style language cards: override the generic vertical-lift hover
+   above with a horizontal slide, which suits full-width rows better. */
+.language-card:hover {
+  transform: translateX(6px);
 }

@@ -7,31 +7,6 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Strictly Smaller & Centered cards */
-    .card-grid {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      justify-content: center !important; 
-      gap: 15px !important;
-      margin: 0 auto !important;
-      padding: 20px !important;
-    }
-
-    .language-card {
-      flex: 0 1 150px !important; 
-      height: 120px !important;   
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      text-align: center !important;
-      padding: 10px !important;
-      border-radius: 8px !important;
-    }
-
-    .language-card h3 { font-size: 1.1em !important; margin: 0 !important; }
-    .language-card p { font-size: 0.8em !important; margin-top: 5px !important; }
-
     /* Simple nav link styling */
     nav {
       margin-top: 10px;
@@ -60,7 +35,6 @@
   <header>
     <img src="logo.jpg" alt="Logo" class="logo-overlay">
     <h1 class="site-title">Be Ahead.</h1>
-    <!-- Added navigation -->
     <nav>
       <a href="index.html">Sign In / Sign Up</a>
     </nav>
@@ -79,12 +53,12 @@
   <section class="languages">
     <h2 class="section-heading">Programming Languages</h2>
     <div class="card-grid">
-      <a href="python.html" class="language-card python"><h3>Python</h3><p>Basics to Pro</p></a>
-      <a href="javascript.html" class="language-card javascript"><h3>JavaScript</h3><p>Web Dev</p></a>
-      <a href="java.html" class="language-card java"><h3>Java</h3><p>OOP Apps</p></a>
-      <a href="go.html" class="language-card go"><h3>Go</h3><p>Backend</p></a>
-      <a href="html.html" class="language-card html"><h3>HTML</h3><p>Structure</p></a>
-      <a href="rust.html" class="language-card rust"><h3>Rust</h3><p>Systems</p></a>
+      <a href="python.html" class="language-card python"><div class="lang-info"><h3>Python</h3><p>Basics to Pro <span class="lang-tagline">— automate scripts, build APIs, power AI</span></p></div></a>
+      <a href="javascript.html" class="language-card javascript"><div class="lang-info"><h3>JavaScript</h3><p>Web Dev <span class="lang-tagline">— bring websites to life, from clicks to animations</span></p></div></a>
+      <a href="java.html" class="language-card java"><div class="lang-info"><h3>Java</h3><p>OOP Apps <span class="lang-tagline">— build robust apps trusted by enterprises</span></p></div></a>
+      <a href="go.html" class="language-card go"><div class="lang-info"><h3>Go</h3><p>Backend <span class="lang-tagline">— handle scale with speed and simplicity</span></p></div></a>
+      <a href="html.html" class="language-card html"><div class="lang-info"><h3>HTML</h3><p>Structure <span class="lang-tagline">— lay the foundation every website stands on</span></p></div></a>
+      <a href="rust.html" class="language-card rust"><div class="lang-info"><h3>Rust</h3><p>Systems <span class="lang-tagline">— write blazing-fast code without the crashes</span></p></div></a>
     </div>
   </section>
 
@@ -120,7 +94,6 @@
 
   <script src="home.js"></script>
 
-  <!-- BeAI Chatbot -->
   <div id="beai-chatbot">Be AI</div>
   <div id="beai-window">
     <div id="beai-header">BeAI</div>
