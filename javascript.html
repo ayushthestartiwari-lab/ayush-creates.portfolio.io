@@ -4,18 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JavaScript Learning - Be Ahead</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="be.css">
 </head>
 <body>
   <header>
     <img src="logo.jpg" alt="Logo" class="logo-overlay">
     <h1 class="site-title">JavaScript</h1>
     <nav style="margin-top: 10px;">
-      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="home.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
       <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
       <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
       <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
-      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+      <a href="html.html" style="color: white; margin-right: 15px; text-decoration: none;">HTML</a>
+      <a href="rust.html" style="color: white; text-decoration: none;">Rust</a>
     </nav>
   </header>
 
@@ -83,5 +87,14 @@ function Welcome() {
     &copy; 2026 Be Ahead <br>
     Developed by <strong>Ayush Tiwary</strong>
   </footer>
+  <!-- BeAI Chatbot -->
+  <div id="beai-chatbot">Be AI</div>
+  <div id="beai-window">
+    <div id="beai-header">BeAI</div>
+    <div id="beai-messages"></div>
+    <input id="beai-input" type="text" placeholder="Ask BeAI..." />
+  </div>
+
+  <script src="beai.js"></script>
 </body>
 </html>
