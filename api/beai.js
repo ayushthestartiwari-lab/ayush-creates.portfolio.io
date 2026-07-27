@@ -132,7 +132,7 @@ module.exports = async function handler(req, res) {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("Gemini API error:", geminiRes.status, errText);
-      res.status(502).json({ error: "Upstream AI service error" });
+      res.status(502).json({ error: "Upstream AI service error", debug: errText });
       return;
     }
 
