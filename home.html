@@ -30,21 +30,26 @@
       text-decoration: underline;
     }
 
-    /* Floating "Be Ahead Arena" button — fixed top-right, stays visible while scrolling */
+    /* Nudge BeAI up on this page only, so Arena can sit below it */
+    #beai-chatbot {
+      bottom: 96px;
+    }
+
+    /* Floating "Be Ahead Arena" button — fixed bottom-right, below BeAI */
     #arena-btn {
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
-      width: 170px;
-      padding: 12px 14px;
+      width: 130px;
+      padding: 9px 10px;
       background: linear-gradient(135deg, #7c3aed, #d94f9c);
       color: #fff;
-      border-radius: 12px;
+      border-radius: 10px;
       text-decoration: none;
       text-align: center;
       font-weight: 700;
-      font-size: 0.9em;
-      letter-spacing: 0.3px;
+      font-size: 0.75em;
+      letter-spacing: 0.2px;
       box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
       z-index: 9998;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -57,11 +62,9 @@
 
     @media (max-width: 480px) {
       #arena-btn {
-        width: auto;
-        padding: 10px 14px;
-        top: 12px;
-        right: 12px;
-        font-size: 0.8em;
+        width: 110px;
+        padding: 8px;
+        font-size: 0.7em;
       }
     }
   </style>
