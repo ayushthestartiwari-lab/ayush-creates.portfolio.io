@@ -30,20 +30,20 @@
       text-decoration: underline;
     }
 
-    /* Floating "Be Ahead Arena" button — sits just above the BeAI widget */
+    /* Floating "Be Ahead Arena" button — fixed top-right, stays visible while scrolling */
     #arena-btn {
       position: fixed;
-      bottom: 96px;
+      top: 20px;
       right: 20px;
-      width: 180px;
-      padding: 14px 16px;
+      width: 170px;
+      padding: 12px 14px;
       background: linear-gradient(135deg, #7c3aed, #d94f9c);
       color: #fff;
       border-radius: 12px;
       text-decoration: none;
       text-align: center;
       font-weight: 700;
-      font-size: 0.95em;
+      font-size: 0.9em;
       letter-spacing: 0.3px;
       box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
       z-index: 9998;
@@ -57,9 +57,11 @@
 
     @media (max-width: 480px) {
       #arena-btn {
-        width: calc(100vw - 24px);
+        width: auto;
+        padding: 10px 14px;
+        top: 12px;
         right: 12px;
-        bottom: 100px;
+        font-size: 0.8em;
       }
     }
   </style>
