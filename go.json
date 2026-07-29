@@ -1,0 +1,22 @@
+[
+  {"q": "Which keyword declares a variable in Go?", "options": ["var", "let", "def", "dim"], "answer": 0},
+  {"q": "What is the package name required for an executable Go program?", "options": ["exec", "main", "app", "run"], "answer": 1},
+  {"q": "Which function is used to print output in Go?", "options": ["print()", "echo()", "fmt.Println()", "console.log()"], "answer": 2},
+  {"q": "What keyword is used to start a goroutine?", "options": ["async", "go", "thread", "spawn"], "answer": 1},
+  {"q": "How do you declare a constant in Go?", "options": ["const x = 5", "let x = 5", "final x = 5", "static x = 5"], "answer": 0},
+  {"q": "What is a channel used for in Go?", "options": ["Storing files", "Communication between goroutines", "Styling output", "Handling errors only"], "answer": 1},
+  {"q": "Which symbol is used to get the memory address of a variable?", "options": ["*", "&", "#", "@"], "answer": 1},
+  {"q": "What does 'defer' do in Go?", "options": ["Stops the program", "Delays function execution until surrounding function returns", "Declares a variable", "Imports a package"], "answer": 1},
+  {"q": "Which built-in function creates a slice with a specific length?", "options": ["new()", "make()", "create()", "init()"], "answer": 1},
+  {"q": "What is Go's approach to error handling?", "options": ["try/catch blocks", "Returning error values explicitly", "Exceptions only", "Silent failure"], "answer": 1},
+  {"q": "Which keyword is used to define a struct in Go?", "options": ["class", "struct", "type", "object"], "answer": 1},
+  {"q": "What does ':=' do in Go?", "options": ["Compares two values", "Declares and initializes a variable", "Assigns a pointer", "Creates a loop"], "answer": 1},
+  {"q": "Which package is used for HTTP servers in Go's standard library?", "options": ["net/http", "http/server", "web", "fmt/http"], "answer": 0},
+  {"q": "What is the zero value of an int in Go?", "options": ["null", "undefined", "0", "-1"], "answer": 2},
+  {"q": "How do you import multiple packages in Go?", "options": ["Using commas in one import statement", "Using parentheses with each package on its own line", "You cannot import multiple packages", "Using semicolons"], "answer": 1},
+  {"q": "What does 'range' do when used with a slice?", "options": ["Sorts the slice", "Iterates over index and value pairs", "Reverses the slice", "Deletes elements"], "answer": 1},
+  {"q": "Which type is used for a Go interface with no methods?", "options": ["any / interface{}", "void", "null", "undefined"], "answer": 0},
+  {"q": "What does 'go build' do?", "options": ["Runs tests", "Compiles the program into an executable", "Formats code", "Downloads dependencies"], "answer": 1},
+  {"q": "How are Go functions with multiple return values typically used?", "options": ["Only for errors", "To return a result and an error together", "Not supported in Go", "Only in goroutines"], "answer": 1},
+  {"q": "What does 'panic' do in Go?", "options": ["Logs a warning", "Stops normal execution and begins unwinding the stack", "Restarts the program", "Ignores the error"], "answer": 1}
+]
