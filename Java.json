@@ -1,0 +1,22 @@
+[
+  {"q": "Which keyword is used to create a class in Java?", "options": ["class", "struct", "object", "define"], "answer": 0},
+  {"q": "What is the entry point method of a Java program?", "options": ["start()", "main()", "run()", "init()"], "answer": 1},
+  {"q": "Which of these is NOT a primitive data type in Java?", "options": ["int", "boolean", "String", "double"], "answer": 2},
+  {"q": "What does 'JVM' stand for?", "options": ["Java Virtual Machine", "Java Verified Method", "Java Variable Manager", "Joint Virtual Machine"], "answer": 0},
+  {"q": "Which keyword is used to inherit a class in Java?", "options": ["implements", "extends", "inherits", "derives"], "answer": 1},
+  {"q": "What is the default value of a boolean variable in Java?", "options": ["true", "false", "0", "null"], "answer": 1},
+  {"q": "Which access modifier makes a member accessible only within its own class?", "options": ["public", "protected", "private", "default"], "answer": 2},
+  {"q": "What is used to handle exceptions in Java?", "options": ["if/else", "try/catch", "switch/case", "for/while"], "answer": 1},
+  {"q": "Which collection class does NOT allow duplicate elements?", "options": ["ArrayList", "LinkedList", "HashSet", "Vector"], "answer": 2},
+  {"q": "What does the 'static' keyword mean for a method?", "options": ["It can only run once", "It belongs to the class, not instances", "It cannot be overridden", "It is private by default"], "answer": 1},
+  {"q": "Which operator is used to create a new object?", "options": ["new", "create", "make", "alloc"], "answer": 0},
+  {"q": "What is the parent class of all classes in Java?", "options": ["Main", "Object", "Base", "Root"], "answer": 1},
+  {"q": "Which keyword prevents a class from being inherited?", "options": ["static", "final", "private", "sealed"], "answer": 1},
+  {"q": "What is an interface in Java used for?", "options": ["Storing data", "Defining a contract of methods a class must implement", "Creating loops", "Managing memory"], "answer": 1},
+  {"q": "Which loop is guaranteed to execute at least once?", "options": ["for", "while", "do-while", "foreach"], "answer": 2},
+  {"q": "What does 'ArrayList' implement internally?", "options": ["A linked list", "A resizable array", "A hash map", "A binary tree"], "answer": 1},
+  {"q": "Which annotation is used to indicate method overriding?", "options": ["@Override", "@Overload", "@Inherit", "@Method"], "answer": 0},
+  {"q": "What does garbage collection do in Java?", "options": ["Deletes source files", "Automatically frees unused memory", "Compiles code", "Removes comments"], "answer": 1},
+  {"q": "Which of these is used to make a class abstract?", "options": ["abstract keyword", "final keyword", "static keyword", "private keyword"], "answer": 0},
+  {"q": "What is method overloading?", "options": ["Same method name, different parameters", "Same method name, same parameters", "Redefining a method in a subclass", "Deleting a method"], "answer": 0}
+]
