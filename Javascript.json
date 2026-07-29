@@ -1,0 +1,22 @@
+[
+  {"q": "Which keyword declares a block-scoped variable in JavaScript?", "options": ["var", "let", "static", "global"], "answer": 1},
+  {"q": "What does '===' check for?", "options": ["Value only", "Value and type", "Type only", "Reference only"], "answer": 1},
+  {"q": "How do you write a single-line comment in JavaScript?", "options": ["# comment", "// comment", "<!-- comment -->", "' comment"], "answer": 1},
+  {"q": "What is the result of typeof null?", "options": ["'null'", "'undefined'", "'object'", "'number'"], "answer": 2},
+  {"q": "Which method converts a JSON string into a JavaScript object?", "options": ["JSON.parse()", "JSON.stringify()", "JSON.toObject()", "JSON.convert()"], "answer": 0},
+  {"q": "What does 'NaN' stand for?", "options": ["Not a Number", "Null and Number", "New Array Node", "None as Number"], "answer": 0},
+  {"q": "Which array method adds an element to the end?", "options": ["push()", "pop()", "shift()", "unshift()"], "answer": 0},
+  {"q": "What is a closure in JavaScript?", "options": ["A loop that never ends", "A function with access to its outer scope", "A way to close a browser tab", "A type of array"], "answer": 1},
+  {"q": "Which symbol is used for template literals?", "options": ["Single quotes", "Double quotes", "Backticks", "Parentheses"], "answer": 2},
+  {"q": "What does 'this' refer to in a regular function called standalone?", "options": ["The global object", "The function itself", "undefined in strict mode", "Both A and C depending on mode"], "answer": 3},
+  {"q": "Which method is used to select an element by its ID?", "options": ["getElementById()", "querySelectorId()", "selectById()", "getById()"], "answer": 0},
+  {"q": "What does 'Array.map()' return?", "options": ["The same array", "A new array with transformed elements", "A single value", "undefined"], "answer": 1},
+  {"q": "How do you declare a constant in JavaScript?", "options": ["const x = 5;", "constant x = 5;", "let x = const 5;", "final x = 5;"], "answer": 0},
+  {"q": "What is the purpose of 'async/await'?", "options": ["Styling elements", "Handling asynchronous code more readably", "Declaring variables", "Looping through arrays"], "answer": 1},
+  {"q": "Which event fires when the DOM is fully loaded?", "options": ["onload", "DOMContentLoaded", "ready", "onstart"], "answer": 1},
+  {"q": "What does '=>' represent in JavaScript?", "options": ["A comparison operator", "An arrow function", "A greater-than-or-equal check", "A comment"], "answer": 1},
+  {"q": "Which method removes the last element from an array?", "options": ["pop()", "push()", "remove()", "delete()"], "answer": 0},
+  {"q": "What is the default value of an uninitialized variable declared with 'let'?", "options": ["null", "0", "undefined", "NaN"], "answer": 2},
+  {"q": "Which keyword creates a new object instance from a class?", "options": ["make", "new", "create", "init"], "answer": 1},
+  {"q": "What does 'localStorage' persist data across?", "options": ["Only the current tab", "Browser sessions", "Only 24 hours", "Server restarts only"], "answer": 1}
+]
