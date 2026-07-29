@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Yourself - Be Ahead</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="be.css">
+  <style>
+    /* ================= TEST YOURSELF PAGE ================= */
+
+    .test-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    .terminal-card {
+      background-color: #1e1e1e;
+      border-left: 5px solid #32cd32;
+      border-radius: 8px;
+      padding: 28px 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.35);
+      font-family: 'Courier New', monospace;
+      color: #32cd32;
+    }
+
+    .terminal-card .prompt-line {
+      color: #9aa3c7;
+      margin-bottom: 6px;
+      font-size: 0.85em;
+    }
+
+    .terminal-card .prompt-line span {
+      color: #f7a072;
+    }
+
+    .field-group {
+      margin: 18px 0;
+    }
+
+    .field-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #e0e7ff;
+      font-size: 0.9em;
+    }
+
+    .field-group label::before {
+      content: ">>> ";
+      color: #d94f9c;
+    }
+
+    .field-group select,
+    .field-group input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(217, 79, 156, 0.4);
+      background: #0f0f1a;
+      color: #e0e7ff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      outline: none;
+    }
+
+    .field-group select:focus,
+    .field-group input[type="number"]:focus {
+      border-color: #d94f9c;
+      box-shadow: 0 0 8px rgba(217, 79, 156, 0.5);
+    }
+
+    .run-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #d94f9c, #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 1em;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .run-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(217, 79, 156, 0.5);
+    }
+
+    /* ---- Quiz screen ---- */
+    #quiz-screen, #results-screen {
+      display: none;
+    }
+
+    .quiz-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 0.9em;
+      color: #f0abfc;
+    }
+
+    .progress-track {
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #d94f9c, #7c3aed);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    #timer-display {
+      font-weight: 700;
+      color: #ffb37a;
+    }
+
+    #timer-display.low-time {
+      color: #e74c3c;
+      animation: glow-pulse 1s ease-in-out infinite;
+    }
+
+    .question-box {
+      background-color: #1e1e1e;
+      border-left: 5px solid #32cd32;
+      border-radius: 8px;
+      padding: 24px;
+      color: #e0e7ff;
+      font-size: 1.05em;
+      margin-bottom: 20px;
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-btn {
+      text-align: left;
+      padding: 13px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: #e0e7ff;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .option-btn:hover {
+      border-color: rgba(217, 79, 156, 0.6);
+      background: rgba(217, 79, 156, 0.1);
+    }
+
+    .option-btn.selected {
+      border-color: #d94f9c;
+      background: rgba(217, 79, 156, 0.2);
+    }
+
+    .option-btn.correct {
+      border-color: #32cd32;
+      background: rgba(50, 205, 50, 0.15);
+    }
+
+    .option-btn.incorrect {
+      border-color: #e74c3c;
+      background: rgba(231, 76, 60, 0.15);
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+    }
+
+    .quiz-nav-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .next-btn {
+      padding: 11px 26px;
+      background: linear-gradient(135deg, #d94f9c, #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .next-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ---- Results screen ---- */
+    .score-summary {
+      text-align: center;
+      padding: 30px 20px;
+      background: rgba(58, 30, 70, 0.5);
+      border: 2px solid rgba(217, 79, 156, 0.5);
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .score-summary .score-num {
+      font-size: 3em;
+      font-weight: 900;
+      color: #ffb37a;
+      text-shadow: 0 0 20px rgba(247, 160, 114, 0.6);
+    }
+
+    .review-item {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      font-size: 0.92em;
+    }
+
+    .review-item .review-q {
+      color: #e0e7ff;
+      margin-bottom: 6px;
+    }
+
+    .review-item .review-answer {
+      font-size: 0.9em;
+    }
+
+    .review-item.right .review-answer { color: #32cd32; }
+    .review-item.wrong .review-answer { color: #e74c3c; }
+
+    .retry-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      background: transparent;
+      border: 2px solid #d94f9c;
+      color: #f0abfc;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .retry-btn:hover {
+      background: rgba(217, 79, 156, 0.15);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.jpg" alt="Logo" class="logo-overlay">
+    <h1 class="site-title">Test Yourself</h1>
+    <nav style="margin-top: 10px;">
+      <a href="home.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
+      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
+      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
+      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
+      <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
+      <a href="html.html" style="color: white; margin-right: 15px; text-decoration: none;">HTML</a>
+      <a href="rust.html" style="color: white; text-decoration: none;">Rust</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Test Yourself</h1>
+    <p class="quote">"Prove it — one question at a time."</p>
+  </section>
+
+  <div class="test-wrap">
+
+    <!-- SETUP SCREEN -->
+    <div id="setup-screen" class="terminal-card">
+      <p class="prompt-line"># configure_your_test.sh</p>
+
+      <div class="field-group">
+        <label for="lang-select">select_language</label>
+        <select id="lang-select">
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+          <option value="java">Java</option>
+          <option value="go">Go</option>
+          <option value="html">HTML</option>
+          <option value="rust">Rust</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="question-count">number_of_questions <span style="color:#9aa3c7;">(1-20)</span></label>
+        <input type="number" id="question-count" min="1" max="20" value="10">
+      </div>
+
+      <div class="field-group">
+        <label for="time-limit">time_limit_minutes <span style="color:#9aa3c7;">(1-60)</span></label>
+        <input type="number" id="time-limit" min="1" max="60" value="10">
+      </div>
+
+      <p id="setup-error" style="color:#e74c3c; font-size:0.85em; min-height: 18px;"></p>
+
+      <button class="run-btn" id="start-btn">$ run_test</button>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen">
+      <div class="quiz-top-bar">
+        <span id="question-counter">Question 1 of 10</span>
+        <span id="timer-display">10:00</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="question-box" id="question-text"></div>
+      <div class="options-list" id="options-list"></div>
+
+      <div class="quiz-nav-row">
+        <button class="next-btn" id="next-btn" disabled>Next →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="results-screen">
+      <div class="score-summary">
+        <div class="score-num" id="score-num">0/10</div>
+        <p id="score-message" style="color:#e0e7ff; margin-top:8px;"></p>
+      </div>
+
+      <div id="review-list"></div>
+
+      <button class="retry-btn" id="retry-btn">↻ Retry with a new set</button>
+    </div>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Be Ahead <br>
+    Developed by <strong>Ayush Tiwary</strong>
+  </footer>
+
+  <!-- BeAI Chatbot -->
+  <div id="beai-chatbot">Be AI</div>
+  <div id="beai-window">
+    <div id="beai-header">BeAI</div>
+    <div id="beai-messages"></div>
+    <input id="beai-input" type="text" placeholder="Ask BeAI..." />
+  </div>
+
+  <script src="beai.js"></script>
+  <script src="test.js"></script>
+</body>
+</html>
