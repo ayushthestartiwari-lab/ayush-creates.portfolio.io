@@ -1,0 +1,22 @@
+[
+  {"q": "What does HTML stand for?", "options": ["HyperText Markup Language", "HighText Machine Language", "HyperTransfer Markup Language", "Home Tool Markup Language"], "answer": 0},
+  {"q": "Which tag is used to create a hyperlink?", "options": ["<link>", "<a>", "<href>", "<url>"], "answer": 1},
+  {"q": "Which tag defines the largest heading?", "options": ["<h6>", "<heading>", "<h1>", "<head>"], "answer": 2},
+  {"q": "What attribute specifies an image's alternate text?", "options": ["title", "alt", "src", "desc"], "answer": 1},
+  {"q": "Which tag is used to create an unordered list?", "options": ["<ol>", "<ul>", "<li>", "<list>"], "answer": 1},
+  {"q": "What is the correct HTML element for inserting a line break?", "options": ["<break>", "<lb>", "<br>", "<newline>"], "answer": 2},
+  {"q": "Which attribute is used to uniquely identify an HTML element?", "options": ["class", "id", "name", "key"], "answer": 1},
+  {"q": "What does the <form> tag's 'method' attribute define?", "options": ["The form's styling", "How form data is sent (GET/POST)", "The form's language", "The submit button text"], "answer": 1},
+  {"q": "Which tag is used to embed a video in HTML5?", "options": ["<media>", "<video>", "<embed>", "<movie>"], "answer": 1},
+  {"q": "What is the purpose of the <head> tag?", "options": ["Displays the main heading", "Contains metadata about the document", "Shows the page title on screen", "Defines the page's largest section"], "answer": 1},
+  {"q": "Which input type creates a checkbox?", "options": ["type='check'", "type='checkbox'", "type='box'", "type='select'"], "answer": 1},
+  {"q": "What does the 'placeholder' attribute do in an input field?", "options": ["Sets the default submitted value", "Shows hint text before the user types", "Locks the input", "Validates the input"], "answer": 1},
+  {"q": "Which tag is used to define a table row?", "options": ["<td>", "<tr>", "<th>", "<row>"], "answer": 1},
+  {"q": "What is the correct doctype declaration for HTML5?", "options": ["<!DOCTYPE html>", "<!DOCTYPE HTML5>", "<html5>", "<!DOC html>"], "answer": 0},
+  {"q": "Which tag is used to define semantic navigation links?", "options": ["<navigation>", "<nav>", "<menu>", "<links>"], "answer": 1},
+  {"q": "What does the 'rel' attribute in a <link> tag typically define?", "options": ["The file size", "The relationship between the current and linked document", "The rendering speed", "The download location"], "answer": 1},
+  {"q": "Which tag is used to group related form elements?", "options": ["<group>", "<fieldset>", "<section>", "<formgroup>"], "answer": 1},
+  {"q": "What is the correct way to comment in HTML?", "options": ["// comment", "# comment", "<!-- comment -->", "/* comment */"], "answer": 2},
+  {"q": "Which tag defines an inline container used for styling a section of text?", "options": ["<div>", "<span>", "<section>", "<block>"], "answer": 1},
+  {"q": "What does the 'target=\"_blank\"' attribute do on a link?", "options": ["Opens the link in the same tab", "Opens the link in a new tab", "Disables the link", "Downloads the linked file"], "answer": 1}
+]
