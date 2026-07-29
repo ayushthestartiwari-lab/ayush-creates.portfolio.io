@@ -1,0 +1,22 @@
+[
+  {"q": "Which keyword declares a variable in Rust?", "options": ["var", "let", "def", "dim"], "answer": 1},
+  {"q": "Are variables mutable by default in Rust?", "options": ["Yes, always", "No, you must use 'mut' to make them mutable", "Only inside functions", "Only if declared with 'const'"], "answer": 1},
+  {"q": "What does Rust's ownership system primarily prevent?", "options": ["Slow compilation", "Memory safety issues without a garbage collector", "Syntax errors", "Network failures"], "answer": 1},
+  {"q": "What happens when a value is moved in Rust?", "options": ["It's copied", "The original variable can no longer be used", "It's deleted immediately", "Nothing changes"], "answer": 1},
+  {"q": "Which symbol is used to borrow a reference in Rust?", "options": ["*", "&", "#", "@"], "answer": 1},
+  {"q": "What macro is commonly used to print output in Rust?", "options": ["print!()", "println!()", "echo!()", "console!()"], "answer": 1},
+  {"q": "What is the purpose of the 'Result' type in Rust?", "options": ["Storing arrays", "Handling operations that can succeed or fail", "Defining structs", "Managing threads"], "answer": 1},
+  {"q": "Which keyword defines an immutable data structure with named fields?", "options": ["class", "struct", "object", "record"], "answer": 1},
+  {"q": "What does 'cargo' refer to in Rust?", "options": ["A data type", "Rust's package manager and build tool", "A memory allocator", "A testing framework only"], "answer": 1},
+  {"q": "What is a 'trait' in Rust similar to?", "options": ["A variable", "An interface defining shared behavior", "A loop", "A macro"], "answer": 1},
+  {"q": "What does the '?' operator do in Rust?", "options": ["Comments out code", "Propagates errors upward automatically", "Declares an optional variable", "Starts a conditional"], "answer": 1},
+  {"q": "Which type represents an optional value that might be absent?", "options": ["Maybe<T>", "Option<T>", "Nullable<T>", "Opt<T>"], "answer": 1},
+  {"q": "How are comments written in Rust?", "options": ["# comment", "// comment", "<!-- comment -->", "' comment"], "answer": 1},
+  {"q": "What does 'impl' keyword do in Rust?", "options": ["Imports a crate", "Implements methods for a struct or trait", "Declares a variable", "Starts a loop"], "answer": 1},
+  {"q": "What is the default integer type in Rust?", "options": ["i32", "i64", "u32", "int"], "answer": 0},
+  {"q": "Which keyword is used to match patterns in Rust?", "options": ["switch", "match", "case", "when"], "answer": 1},
+  {"q": "What does the borrow checker do?", "options": ["Optimizes runtime speed", "Enforces rules about references at compile time", "Manages the heap manually", "Compiles code faster"], "answer": 1},
+  {"q": "Which collection type is a growable array in Rust?", "options": ["Array<T>", "Vec<T>", "List<T>", "Slice<T>"], "answer": 1},
+  {"q": "What does 'unwrap()' do on an Option or Result?", "options": ["Safely returns a default value", "Extracts the value or panics if it's None/Err", "Converts it to a string", "Ignores errors silently"], "answer": 1},
+  {"q": "What is Rust primarily known for combining?", "options": ["Slow speed and high safety", "High performance and memory safety without garbage collection", "Garbage collection and dynamic typing", "Interpreted execution and simplicity"], "answer": 1}
+]
