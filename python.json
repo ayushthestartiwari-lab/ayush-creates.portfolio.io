@@ -1,0 +1,22 @@
+[
+  {"q": "What is the output of print(type(5))?", "options": ["<class 'int'>", "<class 'float'>", "<class 'number'>", "int"], "answer": 0},
+  {"q": "Which keyword is used to define a function in Python?", "options": ["function", "def", "func", "define"], "answer": 1},
+  {"q": "What does len('Hello') return?", "options": ["4", "5", "6", "Error"], "answer": 1},
+  {"q": "How do you create a list in Python?", "options": ["list = (1,2,3)", "list = {1,2,3}", "list = [1,2,3]", "list = <1,2,3>"], "answer": 2},
+  {"q": "What is the correct file extension for Python files?", "options": [".pt", ".pyt", ".py", ".python"], "answer": 2},
+  {"q": "Which operator is used for exponentiation in Python?", "options": ["^", "**", "exp()", "pow"], "answer": 1},
+  {"q": "What does the 'self' keyword represent in a class method?", "options": ["The class itself", "The current instance of the class", "A static variable", "The parent class"], "answer": 1},
+  {"q": "Which of these is a mutable data type?", "options": ["tuple", "string", "list", "int"], "answer": 2},
+  {"q": "What is the output of 3 // 2 in Python?", "options": ["1.5", "1", "2", "1.0"], "answer": 1},
+  {"q": "How do you start a comment in Python?", "options": ["//", "#", "/*", "--"], "answer": 1},
+  {"q": "What does the 'range(5)' function generate?", "options": ["0,1,2,3,4", "1,2,3,4,5", "0,1,2,3,4,5", "1,2,3,4"], "answer": 0},
+  {"q": "Which module is used for regular expressions in Python?", "options": ["regex", "re", "regexp", "pyregex"], "answer": 1},
+  {"q": "What is a dictionary in Python?", "options": ["An ordered sequence", "A collection of key-value pairs", "A type of loop", "A function decorator"], "answer": 1},
+  {"q": "What does 'try/except' handle?", "options": ["Loops", "Exceptions", "Imports", "Classes"], "answer": 1},
+  {"q": "Which built-in function converts a string to an integer?", "options": ["int()", "str()", "toInt()", "integer()"], "answer": 0},
+  {"q": "What is the output of bool(0)?", "options": ["True", "False", "0", "Error"], "answer": 1},
+  {"q": "Which keyword is used to import a module?", "options": ["include", "import", "using", "require"], "answer": 1},
+  {"q": "What does 'lambda' create in Python?", "options": ["A loop", "An anonymous function", "A class", "A module"], "answer": 1},
+  {"q": "What is the correct way to open a file for reading?", "options": ["open('file.txt', 'w')", "open('file.txt', 'r')", "open('file.txt', 'a')", "read('file.txt')"], "answer": 1},
+  {"q": "What does 'list.append(x)' do?", "options": ["Removes x from list", "Adds x to the end of list", "Sorts the list", "Reverses the list"], "answer": 1}
+]
