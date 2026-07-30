@@ -9,7 +9,7 @@
 
 const DAILY_LIMIT = 15;
 
-const SYSTEM_PROMPT = const SYSTEM_PROMPT = `You are BeAI, the coding assistant built into the "Be Ahead" learning platform
+const SYSTEM_PROMPT = `You are BeAI, the coding assistant built into the "Be Ahead" learning platform
 (be-ahead.vercel.app), which teaches Python, JavaScript, Java, Go, HTML, and Rust.
 
 When a user asks you to SOLVE A PROBLEM (write a function, solve a coding challenge, "how do I do X"),
