@@ -63,6 +63,31 @@
       transform: scale(1.08);
       box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
     }
+
+    /* Floating "Bug Hunter" button — rectangular, top-right */
+    #bughunter-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #7c3aed, #d94f9c);
+      color: #fff;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9em;
+      box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
+      z-index: 9998;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #bughunter-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
+    }
   </style>
 </head>
 <body>
@@ -137,6 +162,8 @@
   <script src="home.js"></script>
 
   <a href="test.html" id="arena-btn">🏆<br>Arena</a>
+
+  <a href="bughunter.html" id="bughunter-btn">🐛 Bug Hunter</a>
 
   <div id="beai-chatbot">Be AI</div>
   <div id="beai-window">
