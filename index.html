@@ -29,7 +29,6 @@
       <button type="submit">Sign Up</button>
     </form>
   </div>
-
   <div class="form-container sign-in">
     <form id="signinForm">
       <h1>Sign In</h1>
@@ -39,12 +38,15 @@
       <span>or use your email password</span>
       <input type="email" id="signinEmail" placeholder="Email" required>
       <input type="password" id="signinPassword" placeholder="Password" required>
+      <div class="remember-me">
+        <input type="checkbox" id="rememberMe">
+        <label for="rememberMe">Remember me</label>
+      </div>
       <a href="#">Forget Your Password?</a>
       <div id="signinError" style="color: red; font-size: 0.85em; min-height: 1.2em;"></div>
       <button type="submit">Sign In</button>
     </form>
   </div>
-
   <div class="toggle-container">
     <div class="toggle">
       <div class="toggle-panel toggle-left">
@@ -60,7 +62,6 @@
     </div>
   </div>
 </div>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="script.js"></script>
