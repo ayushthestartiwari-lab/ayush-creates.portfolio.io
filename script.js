@@ -122,6 +122,7 @@ document.getElementById('signinForm').addEventListener('submit', function(e) {
 
     const email = document.getElementById('signinEmail').value.trim();
     const password = document.getElementById('signinPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
     const errorDiv = document.getElementById('signinError');
     const submitBtn = e.target.querySelector('button[type="submit"]');
 
@@ -139,7 +140,14 @@ document.getElementById('signinForm').addEventListener('submit', function(e) {
 
     if (submitBtn) submitBtn.disabled = true;
 
-    auth.signInWithEmailAndPassword(email, password)
+    const persistenceType = rememberMe
+        ? firebase.auth.Auth.Persistence.LOCAL
+        : firebase.auth.Auth.Persistence.SESSION;
+
+    auth.setPersistence(persistenceType)
+        .then(() => {
+            return auth.signInWithEmailAndPassword(email, password);
+        })
         .then(() => {
             window.location.href = 'home.html';
         })
