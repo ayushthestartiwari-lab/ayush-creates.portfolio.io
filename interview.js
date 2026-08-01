@@ -86,6 +86,7 @@
     faceCanvas: document.getElementById("faceCanvas"),
     transcriptLog: document.getElementById("transcriptLog"),
     questionCounter: document.getElementById("questionCounter"),
+    faceBadge: document.getElementById("faceBadge"),
     timer: document.getElementById("timer"),
     micIndicator: document.getElementById("micIndicator"),
     micDot: document.querySelector(".mic-dot"),
@@ -151,10 +152,78 @@
     }
   }
 
-  // TODO Phase 2: load face-api.js models here and run detection on a
-  // requestAnimationFrame loop against #camPreview, drawing landmarks to
-  // #faceCanvas and pushing per-question metrics (eye-contact %, blink
-  // rate, dominant expression) into state.transcript[i].metrics.
+  // TODO Phase 2 (full): also draw landmarks to #faceCanvas and derive
+  // eye-contact / expression metrics for the report. For now this only
+  // confirms a face is actually visible before/during the interview.
+
+  let faceModelsLoaded = false;
+  let faceMonitorHandle = null;
+
+  async function ensureFaceModelsLoaded() {
+    if (faceModelsLoaded) return true;
+    if (typeof faceapi === "undefined") return false; // CDN blocked/failed
+    try {
+      const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      faceModelsLoaded = true;
+      return true;
+    } catch (err) {
+      console.error("face-api model load failed:", err);
+      return false;
+    }
+  }
+
+  async function isFaceVisible() {
+    if (!faceModelsLoaded) return true; // fail open — never block on detector issues
+    try {
+      const result = await faceapi.detectSingleFace(
+        el.camPreview,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+      );
+      return !!result;
+    } catch (err) {
+      return true; // fail open
+    }
+  }
+
+  function updateFaceBadge(visible) {
+    if (!el.faceBadge) return;
+    el.faceBadge.textContent = visible ? "face: visible" : "face: not detected";
+    el.faceBadge.className = "face-badge " + (visible ? "ok" : "warn");
+  }
+
+  // polls until a face is seen, or times out (interview still proceeds
+  // either way — this is a nudge, not a hard gate)
+  function waitForFace(timeoutMs = 8000) {
+    return new Promise((resolve) => {
+      const startedAt = Date.now();
+      const poll = async () => {
+        const visible = await isFaceVisible();
+        updateFaceBadge(visible);
+        if (visible || Date.now() - startedAt > timeoutMs) {
+          resolve(visible);
+          return;
+        }
+        setTimeout(poll, 400);
+      };
+      poll();
+    });
+  }
+
+  function startFaceMonitor() {
+    stopFaceMonitor();
+    faceMonitorHandle = setInterval(async () => {
+      const visible = await isFaceVisible();
+      updateFaceBadge(visible);
+    }, 1200);
+  }
+
+  function stopFaceMonitor() {
+    if (faceMonitorHandle) {
+      clearInterval(faceMonitorHandle);
+      faceMonitorHandle = null;
+    }
+  }
 
   // ---- TTS (AI asks the question) ----
   let cachedVoices = [];
@@ -323,6 +392,23 @@
 
     el.setupPanel.hidden = true;
     el.interviewPanel.hidden = false;
+    setStatus("live", "checking camera...");
+    appendLog("sys", "# checking that your face is visible...");
+
+    const modelsOk = await ensureFaceModelsLoaded();
+    if (modelsOk) {
+      const faceOk = await waitForFace(8000);
+      appendLog(
+        "sys",
+        faceOk
+          ? "# face detected — starting interview."
+          : "# couldn't clearly see your face — starting anyway, but try centering yourself in frame."
+      );
+      startFaceMonitor();
+    } else {
+      updateFaceBadge(true);
+    }
+
     setStatus("live", "interview live");
     startTimer();
     appendLog("sys", `# topic: ${state.topic} — ${state.questions.length} questions`);
@@ -336,6 +422,7 @@
     }
     window.speechSynthesis.cancel();
     stopTimer();
+    stopFaceMonitor();
     stopMedia();
     setStatus("ready", "interview ended");
 
