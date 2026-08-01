@@ -6,58 +6,140 @@
 (() => {
   "use strict";
 
-  // ---- question banks (fixed for MVP) ----
+  // ---- question banks (larger pools — 5 are randomly picked per session,
+  // guaranteed no repeats within that session) ----
   const QUESTION_BANKS = {
     python: [
       "Tell me a bit about your experience with Python.",
       "What's the difference between a list and a tuple?",
       "How would you handle an exception in Python?",
       "Explain what a decorator is, in your own words.",
-      "Describe a project where you used Python to solve a real problem."
+      "Describe a project where you used Python to solve a real problem.",
+      "What's the difference between a shallow copy and a deep copy?",
+      "How do you manage dependencies in a Python project?",
+      "What's the difference between a list comprehension and a generator expression?",
+      "How does Python's garbage collection work, roughly?",
+      "What's the difference between `is` and `==` in Python?",
+      "How would you debug a Python script that's running slower than expected?",
+      "What's a context manager, and when would you use `with`?",
+      "How do you handle multiple return values from a function in Python?",
+      "What's the difference between `*args` and `**kwargs`?",
+      "How would you structure a medium-sized Python project's folders?"
     ],
     javascript: [
       "Tell me a bit about your experience with JavaScript.",
       "What's the difference between var, let, and const?",
       "Can you explain what a closure is?",
       "How does asynchronous code work in JavaScript?",
-      "Describe a project where you used JavaScript to solve a real problem."
+      "Describe a project where you used JavaScript to solve a real problem.",
+      "What's the difference between `==` and `===`?",
+      "How would you explain the event loop to someone new to JS?",
+      "What's the difference between `null` and `undefined`?",
+      "How do promises differ from callbacks?",
+      "What's event delegation, and why is it useful?",
+      "How would you debug a memory leak in a web app?",
+      "What's the difference between synchronous and asynchronous JavaScript?",
+      "How does `this` behave differently in arrow functions vs regular functions?",
+      "What's the purpose of the `fetch` API?",
+      "How would you optimize a slow-loading webpage?"
     ],
     java: [
       "Tell me a bit about your experience with Java.",
       "What's the difference between an interface and an abstract class?",
       "How does garbage collection work in Java?",
       "Explain what encapsulation means, in your own words.",
-      "Describe a project where you used Java to solve a real problem."
+      "Describe a project where you used Java to solve a real problem.",
+      "What's the difference between `==` and `.equals()` for objects?",
+      "How does exception handling work in Java?",
+      "What's the difference between a checked and unchecked exception?",
+      "How would you explain polymorphism to someone new to programming?",
+      "What's the purpose of the `static` keyword?",
+      "How do you handle thread safety in Java?",
+      "What's the difference between an ArrayList and a LinkedList?",
+      "How would you debug a NullPointerException?",
+      "What's the difference between method overloading and overriding?",
+      "How does Java handle memory management compared to a language like C?"
     ],
     go: [
       "Tell me a bit about your experience with Go.",
       "What's a goroutine, and how is it different from a thread?",
       "How does Go handle error handling differently from other languages?",
       "Explain what a channel is used for.",
-      "Describe a project where you used Go to solve a real problem."
+      "Describe a project where you used Go to solve a real problem.",
+      "What's the difference between a slice and an array in Go?",
+      "How does Go's garbage collector work, roughly?",
+      "What's the purpose of the `defer` keyword?",
+      "How would you structure a Go project with multiple packages?",
+      "What's the difference between a pointer and a value receiver on a method?",
+      "How do you avoid race conditions in concurrent Go code?",
+      "What's the empty interface `interface{}` used for?",
+      "How would you handle a panic in Go?",
+      "What's the difference between buffered and unbuffered channels?",
+      "How do you write and run tests in Go?"
     ],
     rust: [
       "Tell me a bit about your experience with Rust.",
       "Can you explain ownership and borrowing in your own words?",
       "What problem does the borrow checker solve?",
       "How does Rust handle error handling without exceptions?",
-      "Describe a project where you used Rust to solve a real problem."
+      "Describe a project where you used Rust to solve a real problem.",
+      "What's the difference between `String` and `&str`?",
+      "What's a lifetime, and why does Rust need them?",
+      "How does Rust achieve memory safety without a garbage collector?",
+      "What's the difference between `Option` and `Result`?",
+      "How would you explain traits to someone coming from an OOP background?",
+      "What's the difference between a `Vec` and an array in Rust?",
+      "How does pattern matching with `match` work?",
+      "What's the purpose of the `unsafe` keyword?",
+      "How do you handle concurrency safely in Rust?",
+      "What's the difference between stack and heap allocation in Rust?"
     ],
     html: [
       "Tell me a bit about your experience with HTML.",
       "What's the difference between a block-level and inline element?",
       "Why do semantic tags like <header> or <article> matter over plain <div>s?",
       "How would you make a form accessible to screen readers?",
-      "Describe a project where you built or structured a page from scratch."
+      "Describe a project where you built or structured a page from scratch.",
+      "What's the difference between `id` and `class` attributes?",
+      "How do you make an image accessible for someone using a screen reader?",
+      "What's the purpose of the `<meta viewport>` tag?",
+      "How would you structure a page for good SEO?",
+      "What's the difference between `<section>` and `<div>`?",
+      "How do you validate an HTML form without JavaScript?",
+      "What's the difference between relative and absolute paths in HTML?",
+      "How would you embed a video responsively?",
+      "What's the purpose of `alt` text on images?",
+      "How do you handle browser compatibility for older HTML features?"
     ],
     general: [
       "Tell me a bit about yourself and what you're working on.",
       "Describe a challenging problem you solved recently.",
       "How do you approach learning a new technology?",
       "Tell me about a time you had to debug something tricky.",
-      "Where do you want to be in your career a year from now?"
+      "Where do you want to be in your career a year from now?",
+      "How do you prioritize tasks when you have multiple deadlines?",
+      "Describe a time you disagreed with someone on a project — how did you handle it?",
+      "What's a mistake you made recently, and what did you learn from it?",
+      "How do you stay motivated when a project gets repetitive or boring?",
+      "Tell me about a project you're genuinely proud of.",
+      "How do you handle feedback or criticism on your work?",
+      "What's your approach to working under a tight deadline?",
+      "How do you decide when to ask for help versus figuring something out yourself?",
+      "Tell me about a time you had to learn something completely new quickly.",
+      "What does a good day of work look like for you?"
     ]
   };
+
+  function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  const QUESTIONS_PER_SESSION = 5;
 
   // ---- state ----
   const state = {
@@ -248,15 +330,20 @@
 
   function loadVoices() {
     return new Promise((resolve) => {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length) {
-        resolve(voices);
+      const existing = window.speechSynthesis.getVoices();
+      if (existing.length) {
+        resolve(existing);
         return;
       }
-      // voices load async in some browsers (esp. on first page load)
-      window.speechSynthesis.onvoiceschanged = () => {
-        resolve(window.speechSynthesis.getVoices());
+      let resolved = false;
+      const finish = (voices) => {
+        if (resolved) return;
+        resolved = true;
+        resolve(voices);
       };
+      window.speechSynthesis.onvoiceschanged = () => finish(window.speechSynthesis.getVoices());
+      // fallback in case onvoiceschanged never fires in this browser
+      setTimeout(() => finish(window.speechSynthesis.getVoices()), 1500);
     });
   }
 
@@ -306,8 +393,23 @@
 
       el.micDot.className = "mic-dot speaking";
       el.micState.textContent = "AI speaking";
-      utter.onend = () => resolve();
-      utter.onerror = () => resolve();
+
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+
+      utter.onend = finish;
+      utter.onerror = finish;
+
+      // safety net: onend/onerror sometimes never fire (a known browser
+      // quirk) — never let a stuck utterance freeze the whole interview
+      const maxWaitMs = Math.max(4000, text.length * 110);
+      setTimeout(finish, maxWaitMs);
+
+      window.speechSynthesis.cancel(); // clear any stuck/queued utterances first
       window.speechSynthesis.speak(utter);
     });
   }
@@ -422,7 +524,8 @@
   async function startInterview() {
     el.permError.hidden = true;
     state.topic = el.topicSelect.value;
-    state.questions = QUESTION_BANKS[state.topic] || QUESTION_BANKS.general;
+    const pool = QUESTION_BANKS[state.topic] || QUESTION_BANKS.general;
+    state.questions = shuffleArray(pool).slice(0, QUESTIONS_PER_SESSION);
     state.transcript = [];
     state.currentIndex = -1;
     state.reportRequested = false;
