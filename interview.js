@@ -516,6 +516,12 @@
   }
 
   async function runInterview() {
+    const greeting =
+      `Hi there! I'm your AI interviewer for today. We're going to go through ${state.questions.length} questions on ${state.topic}. ` +
+      `Just relax and answer naturally, like you would in a real conversation. Let's get started.`;
+    appendLog("ai", greeting);
+    await speak(greeting);
+
     for (let i = 0; i < state.questions.length; i++) {
       state.currentIndex = i;
       await runQuestion(i);
