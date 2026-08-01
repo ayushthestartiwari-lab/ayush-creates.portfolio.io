@@ -240,6 +240,20 @@
 
   let faceModelsLoaded = false;
   let faceMonitorHandle = null;
+  const faceStats = {}; // { [questionIndex]: { visible: n, total: n, lookAwayEvents: n } }
+
+  function recordFaceSample(index, visible) {
+    if (index < 0) return; // not in a question yet (e.g. during greeting)
+    if (!faceStats[index]) faceStats[index] = { visible: 0, total: 0, lookAwayEvents: 0 };
+    faceStats[index].total++;
+    if (visible) faceStats[index].visible++;
+  }
+
+  function recordLookAwayEvent(index) {
+    if (index < 0) return;
+    if (!faceStats[index]) faceStats[index] = { visible: 0, total: 0, lookAwayEvents: 0 };
+    faceStats[index].lookAwayEvents++;
+  }
 
   async function ensureFaceModelsLoaded() {
     if (faceModelsLoaded) return true;
@@ -291,6 +305,7 @@
     if (visible) return;
 
     appendLog("sys", "# face not visible — pausing until you're back in frame.");
+    recordLookAwayEvent(state.currentIndex);
     await speak(
       "I can't see your face right now. Please make sure your camera is on and you're centered in frame."
     );
@@ -315,6 +330,7 @@
     faceMonitorHandle = setInterval(async () => {
       const visible = await isFaceVisible();
       updateFaceBadge(visible);
+      recordFaceSample(state.currentIndex, visible);
     }, 1200);
   }
 
@@ -672,7 +688,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: state.topic,
-          transcript: state.transcript
+          transcript: state.transcript,
+          faceMetrics: buildFaceMetricsSummary()
         })
       });
 
@@ -690,6 +707,18 @@
     } catch (err) {
       el.reportBody.textContent = `# network error generating report\n${err.message}`;
     }
+  }
+
+  function buildFaceMetricsSummary() {
+    return state.transcript.map((t, i) => {
+      const stat = faceStats[i];
+      const eyeContactPercent = stat && stat.total > 0 ? Math.round((stat.visible / stat.total) * 100) : null;
+      return {
+        question_index: i,
+        eye_contact_percent: eyeContactPercent,
+        looked_away_events: stat ? stat.lookAwayEvents : 0
+      };
+    });
   }
 
   function renderReport(report) {
@@ -715,6 +744,16 @@
     summaryP.className = "term-line";
     summaryP.textContent = report.summary || "";
     el.reportBody.appendChild(summaryP);
+
+    if (report.camera_presence) {
+      const presenceP = document.createElement("p");
+      presenceP.className = "term-line";
+      const pct = report.camera_presence.average_eye_contact_percent;
+      presenceP.textContent =
+        (pct !== null && pct !== undefined ? `eye contact: ~${pct}% of the time. ` : "") +
+        (report.camera_presence.note || "");
+      addBlock("camera_presence", presenceP);
+    }
 
     const strengthsList = document.createElement("ul");
     (report.strengths || []).forEach((s) => {
