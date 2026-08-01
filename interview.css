@@ -177,11 +177,29 @@
   bottom: 0; left: 0; right: 0;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0.5rem 0.85rem;
   font-family: var(--iv-mono);
   font-size: 0.75rem;
   color: var(--iv-accent);
   background: linear-gradient(transparent, rgba(0,0,0,0.75));
+}
+.face-badge {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  border: 1px solid var(--iv-dim);
+  color: var(--iv-dim);
+}
+.face-badge.ok {
+  color: #4ade80;
+  border-color: #4ade80;
+  text-shadow: 0 0 6px rgba(74, 222, 128, 0.6);
+}
+.face-badge.warn {
+  color: var(--iv-error);
+  border-color: var(--iv-error);
+  text-shadow: 0 0 6px rgba(255, 92, 92, 0.6);
 }
 
 .transcript-col {
