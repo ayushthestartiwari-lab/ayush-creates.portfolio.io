@@ -417,6 +417,10 @@
   }
 
   // ---- STT (user answers) ----
+  // Uses continuous + interim results so WE decide when the person is
+  // actually done, instead of relying on the browser's own (often too
+  // short, ~1-2s) built-in pause detection. A person pausing to think for
+  // a couple seconds mid-answer will no longer get cut off.
   function listenForAnswer() {
     return new Promise((resolve) => {
       const SpeechRecognition =
@@ -428,48 +432,74 @@
         return;
       }
 
+      const SILENCE_TIMEOUT_MS = 3500; // how long a pause has to be before we consider them done
+      const MAX_DURATION_MS = 60000; // hard cap so it can never listen forever
+
       const recognition = new SpeechRecognition();
       recognition.lang = "en-US";
-      recognition.interimResults = false;
+      recognition.continuous = true; // don't auto-stop on the first short pause
+      recognition.interimResults = true; // needed so we can reset the silence timer as they talk
       recognition.maxAlternatives = 1;
 
       let finalText = "";
+      let silenceTimer = null;
+      let stopped = false;
+
+      const stopListening = () => {
+        if (stopped) return;
+        stopped = true;
+        clearTimeout(silenceTimer);
+        clearTimeout(maxTimer);
+        try { recognition.stop(); } catch (e) { /* noop */ }
+      };
+
+      const resetSilenceTimer = () => {
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(stopListening, SILENCE_TIMEOUT_MS);
+      };
+
+      const maxTimer = setTimeout(stopListening, MAX_DURATION_MS);
 
       recognition.onstart = () => {
         el.micDot.className = "mic-dot listening";
         el.micState.textContent = "your turn — go ahead";
+        resetSilenceTimer(); // also gives them a few seconds to start talking
       };
 
-      // fires once the API actually detects the person's voice, as
-      // opposed to onstart which just means the mic is open
       recognition.onspeechstart = () => {
         el.micDot.className = "mic-dot listening";
         el.micState.textContent = "listening...";
       };
 
-      // fires when the API detects a pause long enough to mean the
-      // person is done — recognition.onend follows shortly after with
-      // the final transcript
-      recognition.onspeechend = () => {
-        el.micDot.className = "mic-dot";
-        el.micState.textContent = "processing your answer...";
-      };
-
       recognition.onresult = (event) => {
-        finalText = Array.from(event.results)
-          .map((r) => r[0].transcript)
-          .join(" ")
-          .trim();
+        let finalChunk = "";
+        for (let i = 0; i < event.results.length; i++) {
+          if (event.results[i].isFinal) finalChunk += event.results[i][0].transcript + " ";
+        }
+        if (finalChunk.trim()) finalText = finalChunk.trim();
+        // any speech — final or still-forming — means they're not done yet
+        resetSilenceTimer();
       };
 
-      recognition.onerror = () => {
-        // resolve with whatever we have so the interview doesn't hang
-        resolve(finalText || "(no answer captured)");
+      recognition.onspeechend = () => {
+        // the browser thinks they paused, but we don't stop here — our
+        // own longer silence timer decides, so a thinking pause is fine
+        el.micState.textContent = "thinking...";
+      };
+
+      recognition.onerror = (event) => {
+        // "no-speech" fires naturally during a pause in continuous mode —
+        // not a real error, our silence timer handles actual completion
+        if (event.error !== "no-speech") {
+          stopListening();
+        }
       };
 
       recognition.onend = () => {
         el.micDot.className = "mic-dot";
-        el.micState.textContent = "waiting for question";
+        el.micState.textContent = "processing your answer...";
+        clearTimeout(silenceTimer);
+        clearTimeout(maxTimer);
         resolve(finalText || "(no answer captured)");
       };
 
@@ -488,8 +518,41 @@
     "Okay, good to know."
   ];
 
+  const STUCK_PHRASES = [
+    "Don't worry, that happens. Let's try a different question instead.",
+    "No problem at all — let's switch to something else.",
+    "That's alright, let's try an easier one instead.",
+    "Totally fine, take it easy — let's move to a different question."
+  ];
+
   function randomAck() {
     return ACK_PHRASES[Math.floor(Math.random() * ACK_PHRASES.length)];
+  }
+
+  function randomStuckResponse() {
+    return STUCK_PHRASES[Math.floor(Math.random() * STUCK_PHRASES.length)];
+  }
+
+  // treats an empty, near-empty, or "I don't know"-style answer as the
+  // person being stuck, rather than a real attempt
+  function isStuckAnswer(answer) {
+    if (!answer) return true;
+    const trimmed = answer.trim().toLowerCase();
+    if (!trimmed || trimmed === "(no answer captured)") return true;
+    const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+    if (wordCount <= 2) return true;
+    const stuckPhrases = ["i don't know", "i dont know", "not sure", "no idea", "i can't", "i cant", "pass", "skip"];
+    return stuckPhrases.some((p) => trimmed.includes(p));
+  }
+
+  // pulls a fresh question from the topic's full pool that hasn't already
+  // been used this session — returns null if the pool is exhausted
+  function pickReplacementQuestion(topic, usedQuestions) {
+    const pool = QUESTION_BANKS[topic] || QUESTION_BANKS.general;
+    const used = new Set(usedQuestions);
+    const candidates = pool.filter((q) => !used.has(q));
+    if (!candidates.length) return null;
+    return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
   async function runQuestion(index) {
@@ -497,13 +560,36 @@
     // this is what catches someone stepping out of frame mid-interview
     await ensureFaceVisibleBeforeSpeaking();
 
-    const q = state.questions[index];
-    el.questionCounter.textContent = `Q ${index + 1} / ${state.questions.length}`;
-    appendLog("ai", q);
+    let q = state.questions[index];
+    let alreadySwapped = false;
+    let answer;
 
-    await speak(q);
-    const answer = await listenForAnswer();
-    appendLog("user", answer);
+    while (true) {
+      el.questionCounter.textContent = `Q ${index + 1} / ${state.questions.length}`;
+      appendLog("ai", q);
+      await speak(q);
+
+      answer = await listenForAnswer();
+      appendLog("user", answer);
+
+      if (isStuckAnswer(answer) && !alreadySwapped) {
+        alreadySwapped = true;
+        const comfort = randomStuckResponse();
+        appendLog("ai", comfort);
+        await speak(comfort);
+
+        const replacement = pickReplacementQuestion(state.topic, state.questions);
+        if (replacement) {
+          q = replacement;
+          state.questions[index] = replacement; // keep counter/report consistent
+          continue; // re-ask with the new question instead of moving on
+        }
+        // no fresh question left in the pool — accept what we have and move on
+      }
+
+      break;
+    }
+
     state.transcript.push({ question: q, answer });
 
     // human-like beat before moving on, instead of firing the next
