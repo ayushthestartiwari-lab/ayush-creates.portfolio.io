@@ -1,6 +1,13 @@
+// ---------- interview.js ----------
+// Phase 1 scaffold: camera/mic, TTS questions, STT answers, transcript log,
+// fixed question bank, timer. Face-tracking metrics + Gemini report are
+// wired in Phase 2/3 — see TODOs below.
+
 (() => {
   "use strict";
 
+  // ---- question banks (larger pools — 5 are randomly picked per session,
+  // guaranteed no repeats within that session) ----
   const QUESTION_BANKS = {
     python: [
       "Tell me a bit about your experience with Python.",
@@ -134,22 +141,20 @@
 
   const QUESTIONS_PER_SESSION = 5;
 
+  // ---- state ----
   const state = {
     topic: "python",
     questions: [],
     currentIndex: -1,
-    transcript: [],
+    transcript: [], // { question, answer }
     startedAt: null,
     timerHandle: null,
     stream: null,
     recognition: null,
-    listening: false,
-    reportRequested: false,
-    interviewActive: false,
-    interviewRunId: 0,
-    ending: false
+    listening: false
   };
 
+  // ---- DOM refs ----
   const el = {
     setupPanel: document.getElementById("setupPanel"),
     interviewPanel: document.getElementById("interviewPanel"),
@@ -173,6 +178,7 @@
     reportBody: document.getElementById("reportBody")
   };
 
+  // ---- helpers ----
   function setStatus(mode, label) {
     el.statusDot.className = "status-dot" + (mode ? " " + mode : "");
     el.statusText.textContent = label;
@@ -195,17 +201,16 @@
 
   function startTimer() {
     state.startedAt = Date.now();
-    el.timer.textContent = "00:00";
     state.timerHandle = setInterval(() => {
       el.timer.textContent = formatTime(Date.now() - state.startedAt);
     }, 1000);
   }
 
   function stopTimer() {
-    if (state.timerHandle) clearInterval(state.timerHandle);
-    state.timerHandle = null;
+    clearInterval(state.timerHandle);
   }
 
+  // ---- camera / mic ----
   async function requestMedia() {
     try {
       state.stream = await navigator.mediaDevices.getUserMedia({
@@ -227,19 +232,22 @@
       state.stream.getTracks().forEach((t) => t.stop());
       state.stream = null;
     }
-    if (el.camPreview) el.camPreview.srcObject = null;
   }
+
+  // TODO Phase 2 (full): also draw landmarks to #faceCanvas and derive
+  // eye-contact / expression metrics for the report. For now this only
+  // confirms a face is actually visible before/during the interview.
 
   let faceModelsLoaded = false;
   let faceMonitorHandle = null;
 
   async function ensureFaceModelsLoaded() {
     if (faceModelsLoaded) return true;
-    if (typeof faceapi === "undefined") return false;
+    if (typeof faceapi === "undefined") return false; // CDN blocked/failed
 
     const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
-    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 5000));
 
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 5000));
     const load = (async () => {
       try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -251,11 +259,12 @@
       }
     })();
 
+    // whichever finishes first — never let a slow/blocked CDN hang the interview
     return Promise.race([load, timeout]);
   }
 
   async function isFaceVisible() {
-    if (!faceModelsLoaded) return true;
+    if (!faceModelsLoaded) return true; // fail open — never block on detector issues
     try {
       const result = await faceapi.detectSingleFace(
         el.camPreview,
@@ -263,7 +272,7 @@
       );
       return !!result;
     } catch (err) {
-      return true;
+      return true; // fail open
     }
   }
 
@@ -273,11 +282,13 @@
     el.faceBadge.className = "face-badge " + (visible ? "ok" : "warn");
   }
 
-  async function ensureFaceVisibleBeforeSpeaking(runId) {
+  // polls until a face is seen — pauses the interview flow (not just a
+  // warning) and periodically reminds the person out loud until it can
+  // actually see them. Fails open if the model never loaded.
+  async function ensureFaceVisibleBeforeSpeaking() {
     let visible = await isFaceVisible();
     updateFaceBadge(visible);
-    if (!state.interviewActive || state.interviewRunId !== runId) return false;
-    if (visible) return true;
+    if (visible) return;
 
     appendLog("sys", "# face not visible — pausing until you're back in frame.");
     await speak(
@@ -285,7 +296,7 @@
     );
 
     let secondsWaited = 0;
-    while (state.interviewActive && state.interviewRunId === runId && !visible) {
+    while (!visible) {
       await new Promise((r) => setTimeout(r, 1000));
       visible = await isFaceVisible();
       updateFaceBadge(visible);
@@ -295,10 +306,8 @@
       }
     }
 
-    if (!state.interviewActive || state.interviewRunId !== runId) return false;
     appendLog("sys", "# face detected again — continuing.");
     await speak("Great, I can see you now. Let's continue.");
-    return true;
   }
 
   function startFaceMonitor() {
@@ -310,30 +319,41 @@
   }
 
   function stopFaceMonitor() {
-    if (faceMonitorHandle) clearInterval(faceMonitorHandle);
-    faceMonitorHandle = null;
+    if (faceMonitorHandle) {
+      clearInterval(faceMonitorHandle);
+      faceMonitorHandle = null;
+    }
   }
 
+  // ---- TTS (AI asks the question) ----
   let cachedVoices = [];
 
   function loadVoices() {
     return new Promise((resolve) => {
       const existing = window.speechSynthesis.getVoices();
-      if (existing.length) return resolve(existing);
-
+      if (existing.length) {
+        resolve(existing);
+        return;
+      }
       let resolved = false;
       const finish = (voices) => {
         if (resolved) return;
         resolved = true;
         resolve(voices);
       };
-
       window.speechSynthesis.onvoiceschanged = () => finish(window.speechSynthesis.getVoices());
+      // fallback in case onvoiceschanged never fires in this browser
       setTimeout(() => finish(window.speechSynthesis.getVoices()), 1500);
     });
   }
 
   function pickNaturalVoice(voices) {
+    // Edge ships high-quality Microsoft neural voices — these sound far
+    // more human than the default robotic system voice. Preference order:
+    // 1) Microsoft "Online (Natural)" voices (Edge)
+    // 2) Google voices (Chrome)
+    // 3) any English voice
+    // 4) whatever's first
     const byNamePriority = [
       (v) => /en-US/i.test(v.lang) && /natural/i.test(v.name),
       (v) => /en-GB/i.test(v.lang) && /natural/i.test(v.name),
@@ -353,18 +373,26 @@
 
   function speak(text) {
     return new Promise(async (resolve) => {
-      if (!("speechSynthesis" in window)) return resolve();
+      if (!("speechSynthesis" in window)) {
+        resolve();
+        return;
+      }
 
-      if (!cachedVoices.length) cachedVoices = await loadVoices();
+      if (!cachedVoices.length) {
+        cachedVoices = await loadVoices();
+      }
 
       const utter = new SpeechSynthesisUtterance(text);
       const voice = pickNaturalVoice(cachedVoices);
       if (voice) utter.voice = voice;
+
+      // slightly slower + softer pitch reads as calmer / more human than
+      // the 1/1 robotic default
       utter.rate = 0.95;
       utter.pitch = 1.02;
 
-      if (el.micDot) el.micDot.className = "mic-dot speaking";
-      if (el.micState) el.micState.textContent = "AI speaking";
+      el.micDot.className = "mic-dot speaking";
+      el.micState.textContent = "AI speaking";
 
       let done = false;
       const finish = () => {
@@ -376,20 +404,26 @@
       utter.onend = finish;
       utter.onerror = finish;
 
+      // safety net: onend/onerror sometimes never fire (a known browser
+      // quirk) — never let a stuck utterance freeze the whole interview
       const maxWaitMs = Math.max(4000, text.length * 110);
       setTimeout(finish, maxWaitMs);
 
+      // known Chrome/Edge bug: calling cancel() and speak() in the same
+      // tick can silently drop the new utterance — a tiny delay avoids it
       window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utter);
+      setTimeout(() => window.speechSynthesis.speak(utter), 60);
     });
   }
 
+  // ---- STT (user answers) ----
   function listenForAnswer() {
     return new Promise((resolve) => {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
-        if (el.micState) el.micState.textContent = "speech recognition not supported in this browser";
+        el.micState.textContent = "speech recognition not supported in this browser";
         resolve("(speech recognition unavailable — please use Chrome or Edge)");
         return;
       }
@@ -400,27 +434,25 @@
       recognition.maxAlternatives = 1;
 
       let finalText = "";
-      let resolved = false;
-
-      const finish = (value) => {
-        if (resolved) return;
-        resolved = true;
-        resolve(value);
-      };
 
       recognition.onstart = () => {
-        if (el.micDot) el.micDot.className = "mic-dot listening";
-        if (el.micState) el.micState.textContent = "your turn — go ahead";
+        el.micDot.className = "mic-dot listening";
+        el.micState.textContent = "your turn — go ahead";
       };
 
+      // fires once the API actually detects the person's voice, as
+      // opposed to onstart which just means the mic is open
       recognition.onspeechstart = () => {
-        if (el.micDot) el.micDot.className = "mic-dot listening";
-        if (el.micState) el.micState.textContent = "listening...";
+        el.micDot.className = "mic-dot listening";
+        el.micState.textContent = "listening...";
       };
 
+      // fires when the API detects a pause long enough to mean the
+      // person is done — recognition.onend follows shortly after with
+      // the final transcript
       recognition.onspeechend = () => {
-        if (el.micDot) el.micDot.className = "mic-dot";
-        if (el.micState) el.micState.textContent = "processing your answer...";
+        el.micDot.className = "mic-dot";
+        el.micState.textContent = "processing your answer...";
       };
 
       recognition.onresult = (event) => {
@@ -431,24 +463,22 @@
       };
 
       recognition.onerror = () => {
-        finish(finalText || "(no answer captured)");
+        // resolve with whatever we have so the interview doesn't hang
+        resolve(finalText || "(no answer captured)");
       };
 
       recognition.onend = () => {
-        if (el.micDot) el.micDot.className = "mic-dot";
-        if (el.micState) el.micState.textContent = "waiting for question";
-        finish(finalText || "(no answer captured)");
+        el.micDot.className = "mic-dot";
+        el.micState.textContent = "waiting for question";
+        resolve(finalText || "(no answer captured)");
       };
 
       state.recognition = recognition;
-      try {
-        recognition.start();
-      } catch (e) {
-        finish("(speech recognition unavailable — please try again)");
-      }
+      recognition.start();
     });
   }
 
+  // ---- interview flow ----
   const ACK_PHRASES = [
     "Okay, interesting.",
     "Got it, thanks for sharing that.",
@@ -462,25 +492,22 @@
     return ACK_PHRASES[Math.floor(Math.random() * ACK_PHRASES.length)];
   }
 
-  async function runQuestion(index, runId) {
-    if (!state.interviewActive || state.interviewRunId !== runId) return;
-
-    const canContinue = await ensureFaceVisibleBeforeSpeaking(runId);
-    if (!canContinue) return;
+  async function runQuestion(index) {
+    // re-check the camera before every question, not just at the start —
+    // this is what catches someone stepping out of frame mid-interview
+    await ensureFaceVisibleBeforeSpeaking();
 
     const q = state.questions[index];
     el.questionCounter.textContent = `Q ${index + 1} / ${state.questions.length}`;
     appendLog("ai", q);
 
     await speak(q);
-    if (!state.interviewActive || state.interviewRunId !== runId) return;
-
     const answer = await listenForAnswer();
-    if (!state.interviewActive || state.interviewRunId !== runId) return;
-
     appendLog("user", answer);
     state.transcript.push({ question: q, answer });
 
+    // human-like beat before moving on, instead of firing the next
+    // question immediately
     const isLast = index === state.questions.length - 1;
     const transition =
       randomAck() + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
@@ -488,20 +515,15 @@
     await speak(transition);
   }
 
-  async function runInterview(runId) {
+  async function runInterview() {
     for (let i = 0; i < state.questions.length; i++) {
-      if (!state.interviewActive || state.interviewRunId !== runId) return;
       state.currentIndex = i;
-      await runQuestion(i, runId);
+      await runQuestion(i);
     }
-    if (state.interviewActive && state.interviewRunId === runId) {
-      endInterview();
-    }
+    endInterview();
   }
 
   async function startInterview() {
-    if (state.interviewActive) return;
-
     el.permError.hidden = true;
     state.topic = el.topicSelect.value;
     const pool = QUESTION_BANKS[state.topic] || QUESTION_BANKS.general;
@@ -509,17 +531,11 @@
     state.transcript = [];
     state.currentIndex = -1;
     state.reportRequested = false;
-    state.ending = false;
-    state.interviewActive = true;
-    state.interviewRunId += 1;
 
     el.startBtn.disabled = true;
     const ok = await requestMedia();
     el.startBtn.disabled = false;
-    if (!ok) {
-      state.interviewActive = false;
-      return;
-    }
+    if (!ok) return;
 
     el.setupPanel.hidden = true;
     el.interviewPanel.hidden = false;
@@ -528,7 +544,7 @@
 
     const modelsOk = await ensureFaceModelsLoaded();
     if (modelsOk) {
-      startFaceMonitor();
+      startFaceMonitor(); // keeps the badge live throughout, gating happens per-question
     } else {
       updateFaceBadge(true);
     }
@@ -537,22 +553,13 @@
     startTimer();
     appendLog("sys", `# topic: ${state.topic} — ${state.questions.length} questions`);
 
-    runInterview(state.interviewRunId);
+    runInterview();
   }
 
   async function endInterview() {
-    if (state.ending) return;
-    state.ending = true;
-    state.interviewActive = false;
-    state.interviewRunId += 1;
-
     if (state.recognition) {
-      try {
-        state.recognition.abort ? state.recognition.abort() : state.recognition.stop();
-      } catch (e) {}
-      state.recognition = null;
+      try { state.recognition.stop(); } catch (e) { /* noop */ }
     }
-
     window.speechSynthesis.cancel();
     stopTimer();
     stopFaceMonitor();
@@ -563,10 +570,8 @@
     el.reportPanel.hidden = false;
     el.reportBody.textContent = ">>> generating report...";
 
-    if (state.reportRequested) {
-      state.ending = false;
-      return;
-    }
+    // avoid double-submit if endInterview somehow fires twice
+    if (state.reportRequested) return;
     state.reportRequested = true;
 
     try {
@@ -586,7 +591,6 @@
           `# error generating report\n${data.error || "unknown error"}${
             data.detail ? "\n" + data.detail : ""
           }`;
-        state.ending = false;
         return;
       }
 
@@ -594,8 +598,6 @@
     } catch (err) {
       el.reportBody.textContent = `# network error generating report\n${err.message}`;
     }
-
-    state.ending = false;
   }
 
   function renderReport(report) {
@@ -661,36 +663,14 @@
   }
 
   function resetToSetup() {
-    state.interviewActive = false;
-    state.interviewRunId += 1;
-    state.currentIndex = -1;
-    state.transcript = [];
-    state.questions = [];
-    state.startedAt = null;
-    state.reportRequested = false;
-    state.ending = false;
-
-    if (state.recognition) {
-      try {
-        state.recognition.abort ? state.recognition.abort() : state.recognition.stop();
-      } catch (e) {}
-      state.recognition = null;
-    }
-
-    window.speechSynthesis.cancel();
-    stopTimer();
-    stopFaceMonitor();
-    stopMedia();
-
     el.reportPanel.hidden = true;
     el.setupPanel.hidden = false;
     el.transcriptLog.innerHTML = "";
     el.timer.textContent = "00:00";
-    if (el.questionCounter) el.questionCounter.textContent = "Q 0 / 0";
-    updateFaceBadge(true);
     setStatus("", "idle");
   }
 
+  // ---- wiring ----
   el.startBtn.addEventListener("click", startInterview);
   el.endBtn.addEventListener("click", endInterview);
   el.restartBtn.addEventListener("click", resetToSetup);
