@@ -8,6 +8,7 @@
 // REST setup as BeAI for per-visitor daily rate limiting.
 
 const GEMINI_MODEL = "gemini-3.6-flash";
+const GEMINI_FALLBACK_MODEL = "gemini-2.5-flash"; // used if the primary model stays overloaded
 const GEMINI_TIMEOUT_MS = 25000; // fail cleanly before Vercel force-kills the function
 const DAILY_LIMIT = 5; // successful reports per visitor per day
 const MAX_QUESTIONS = 10; // hard cap on transcript size accepted
@@ -91,61 +92,73 @@ Write a report for the student. Respond ONLY with valid JSON, no markdown fences
 }`;
 
   // ---- call Gemini, with a hard timeout and retries for transient overload ----
-  const MAX_ATTEMPTS = 3;
+  const MAX_ATTEMPTS_PER_MODEL = 2;
+  const modelsToTry = [GEMINI_MODEL, GEMINI_FALLBACK_MODEL];
   let geminiRes, data;
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const controller = new AbortController();
-    const timeoutHandle = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  outer: for (const model of modelsToTry) {
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_MODEL; attempt++) {
+      const controller = new AbortController();
+      const timeoutHandle = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
-    try {
-      geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey // key in header, not query string
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.4,
-              responseMimeType: "application/json"
-            }
-          }),
-          signal: controller.signal
+      try {
+        geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey // key in header, not query string
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.4,
+                responseMimeType: "application/json"
+              }
+            }),
+            signal: controller.signal
+          }
+        );
+      } catch (err) {
+        clearTimeout(timeoutHandle);
+        if (err.name === "AbortError") {
+          console.error(`Gemini (${model}) timed out after`, GEMINI_TIMEOUT_MS, "ms");
+          continue; // try next attempt/model rather than failing outright
         }
-      );
-    } catch (err) {
+        console.error(`Gemini (${model}) request failed:`, err);
+        continue;
+      }
       clearTimeout(timeoutHandle);
-      if (err.name === "AbortError") {
-        console.error("Gemini request timed out after", GEMINI_TIMEOUT_MS, "ms");
-        res.status(504).json({ error: "gemini_timeout", detail: "the AI took too long to respond — please try again" });
+
+      // 503 = model overloaded, a transient condition worth retrying —
+      // and worth switching models for, if retries on this one are used up
+      if (geminiRes.status === 503) {
+        const isLastAttemptForModel = attempt === MAX_ATTEMPTS_PER_MODEL;
+        if (!isLastAttemptForModel) {
+          const backoffMs = attempt * 800;
+          console.warn(`Gemini (${model}) overloaded, retrying in ${backoffMs}ms — attempt ${attempt}/${MAX_ATTEMPTS_PER_MODEL}`);
+          await new Promise((r) => setTimeout(r, backoffMs));
+          continue;
+        }
+        console.warn(`Gemini (${model}) still overloaded after ${MAX_ATTEMPTS_PER_MODEL} attempts — trying next model if available`);
+        continue outer;
+      }
+
+      try {
+        data = await geminiRes.json();
+      } catch (err) {
+        console.error("Failed to parse Gemini response as JSON:", err);
+        res.status(502).json({ error: "gemini_bad_response" });
         return;
       }
-      console.error("Gemini request failed:", err);
-      res.status(502).json({ error: "gemini_unreachable", detail: err.message });
-      return;
+      break outer; // got a usable response (success or non-retryable error)
     }
-    clearTimeout(timeoutHandle);
+  }
 
-    // 503 = model overloaded, a transient condition worth retrying
-    if (geminiRes.status === 503 && attempt < MAX_ATTEMPTS) {
-      const backoffMs = attempt * 800; // 800ms, then 1600ms
-      console.warn(`Gemini overloaded (503), retrying in ${backoffMs}ms — attempt ${attempt}/${MAX_ATTEMPTS}`);
-      await new Promise((r) => setTimeout(r, backoffMs));
-      continue;
-    }
-
-    try {
-      data = await geminiRes.json();
-    } catch (err) {
-      console.error("Failed to parse Gemini response as JSON:", err);
-      res.status(502).json({ error: "gemini_bad_response" });
-      return;
-    }
-    break; // got a response (success or non-retryable error) — stop looping
+  if (!geminiRes) {
+    res.status(502).json({ error: "gemini_unreachable", detail: "could not reach any Gemini model" });
+    return;
   }
 
   if (!geminiRes.ok) {
@@ -156,7 +169,7 @@ Write a report for the student. Respond ONLY with valid JSON, no markdown fences
       status = 429;
     } else if (geminiRes.status === 503) {
       status = 503;
-      detail = "the AI model is currently overloaded — please try again in a moment";
+      detail = "the AI models are currently overloaded — please try again in a moment";
     }
     res.status(status).json({ error: "gemini_error", detail });
     return;
