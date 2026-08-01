@@ -37,7 +37,7 @@ module.exports = async function handler(req, res) {
   }
 
   // ---- validate input ----
-  const { topic, transcript } = req.body || {};
+  const { topic, transcript, faceMetrics } = req.body || {};
 
   if (!Array.isArray(transcript) || transcript.length === 0) {
     res.status(400).json({ error: "invalid_transcript", detail: "transcript must be a non-empty array" });
@@ -63,6 +63,9 @@ module.exports = async function handler(req, res) {
   const safeTopic = typeof topic === "string" ? topic.slice(0, 50) : "software development";
   const visitorId = getVisitorId(req);
 
+  const safeFaceMetrics = Array.isArray(faceMetrics) ? faceMetrics.slice(0, MAX_QUESTIONS) : null;
+  const cameraSummaryText = buildCameraSummaryText(safeFaceMetrics, cleanTranscript.length);
+
   // ---- rate limit: check only (doesn't consume quota until success) ----
   const remaining = await getRemainingQuota(visitorId);
   if (remaining !== null && remaining <= 0) {
@@ -75,7 +78,7 @@ module.exports = async function handler(req, res) {
     .map((t, i) => `Q${i + 1}: ${t.question}\nA${i + 1}: ${t.answer}`)
     .join("\n\n");
 
-  const systemPrompt = `You are an experienced technical interview coach reviewing a mock interview transcript for a student learning ${safeTopic} on a platform called Be Ahead. Respond ONLY with valid JSON, no markdown fences, no preamble, matching exactly this shape:
+  const systemPrompt = `You are an experienced technical interview coach reviewing a mock interview transcript for a student learning ${safeTopic} on a platform called Be Ahead. You will also receive a webcam eye-contact summary — use it to give brief, constructive presence/confidence feedback, but keep the main focus on the content of the answers. Respond ONLY with valid JSON, no markdown fences, no preamble, matching exactly this shape:
 
 {
   "overall_score": <integer 1-10>,
@@ -85,10 +88,14 @@ module.exports = async function handler(req, res) {
   "per_question_feedback": [
     { "question": "<question text>", "feedback": "<1-2 sentence feedback on this specific answer>" }
   ],
+  "camera_presence": {
+    "average_eye_contact_percent": <integer 0-100, or null if no data was provided>,
+    "note": "<1 short, encouraging sentence about their camera presence — mention it only if the data suggests something worth noting, otherwise keep it brief and positive>"
+  },
   "next_steps": ["<concrete, actionable suggestion>", "<concrete, actionable suggestion>"]
 }`;
 
-  const userPrompt = `Here is the full Q&A transcript from a spoken mock interview:\n\n${transcriptText}`;
+  const userPrompt = `Here is the full Q&A transcript from a spoken mock interview:\n\n${transcriptText}\n\n${cameraSummaryText}`;
 
   // ---- try providers in order: Groq first, Gemini as fallback ----
   let rawText = null;
@@ -234,6 +241,28 @@ function makeErr(message, status) {
 
 // ---- helpers ----
 
+function buildCameraSummaryText(faceMetrics, questionCount) {
+  if (!Array.isArray(faceMetrics) || faceMetrics.length === 0) {
+    return "No webcam eye-contact data was available for this session.";
+  }
+
+  const valid = faceMetrics.filter(
+    (m) => m && typeof m.eye_contact_percent === "number" && m.eye_contact_percent >= 0 && m.eye_contact_percent <= 100
+  );
+
+  if (!valid.length) {
+    return "No webcam eye-contact data was available for this session.";
+  }
+
+  const avg = Math.round(valid.reduce((sum, m) => sum + m.eye_contact_percent, 0) / valid.length);
+  const lookAwayCount = faceMetrics.filter((m) => m && m.looked_away_events > 0).length;
+
+  return (
+    `Webcam eye-contact summary: average eye contact was approximately ${avg}% across ${valid.length} of ${questionCount} questions. ` +
+    `The candidate looked away from the camera long enough to pause the interview during ${lookAwayCount} question(s).`
+  );
+}
+
 function normalizeReport(report) {
   const score = Number(report.overall_score);
   return {
@@ -248,7 +277,17 @@ function normalizeReport(report) {
           .filter((item) => item && typeof item.question === "string" && typeof item.feedback === "string")
           .map((item) => ({ question: item.question, feedback: item.feedback }))
       : [],
+    camera_presence: normalizeCameraPresence(report.camera_presence),
     next_steps: Array.isArray(report.next_steps) ? report.next_steps.filter((s) => typeof s === "string") : []
+  };
+}
+
+function normalizeCameraPresence(cp) {
+  if (!cp || typeof cp !== "object") return { average_eye_contact_percent: null, note: "" };
+  const pct = Number(cp.average_eye_contact_percent);
+  return {
+    average_eye_contact_percent: Number.isFinite(pct) ? Math.min(100, Math.max(0, Math.round(pct))) : null,
+    note: typeof cp.note === "string" ? cp.note : ""
   };
 }
 
