@@ -571,3 +571,59 @@ footer p {
 .language-card:hover {
   transform: translateX(6px);
 }
+
+/* Be Ahead Live — CTA banner */
+    .live-cta {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 32px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #7c3aed, #d94f9c);
+      color: #fff;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(217, 79, 156, 0.35);
+    }
+    .live-cta .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.18);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75em;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .live-cta .live-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff5c5c;
+      box-shadow: 0 0 8px #ff5c5c;
+      animation: livePulse 1.4s infinite;
+    }
+    @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .live-cta h2 {
+      margin: 0 0 10px;
+      font-size: 1.8em;
+    }
+    .live-cta p {
+      margin: 0 0 20px;
+      opacity: 0.92;
+      font-size: 1em;
+    }
+    .live-cta a.live-btn {
+      display: inline-block;
+      background: #fff;
+      color: #7c3aed;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+    .live-cta a.live-btn:hover {
+      transform: scale(1.05);
+    }
