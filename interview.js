@@ -162,15 +162,23 @@
   async function ensureFaceModelsLoaded() {
     if (faceModelsLoaded) return true;
     if (typeof faceapi === "undefined") return false; // CDN blocked/failed
-    try {
-      const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-      faceModelsLoaded = true;
-      return true;
-    } catch (err) {
-      console.error("face-api model load failed:", err);
-      return false;
-    }
+
+    const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
+
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 5000));
+    const load = (async () => {
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        faceModelsLoaded = true;
+        return true;
+      } catch (err) {
+        console.error("face-api model load failed:", err);
+        return false;
+      }
+    })();
+
+    // whichever finishes first — never let a slow/blocked CDN hang the interview
+    return Promise.race([load, timeout]);
   }
 
   async function isFaceVisible() {
