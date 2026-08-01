@@ -398,12 +398,14 @@
     const modelsOk = await ensureFaceModelsLoaded();
     if (modelsOk) {
       const faceOk = await waitForFace(8000);
-      appendLog(
-        "sys",
-        faceOk
-          ? "# face detected — starting interview."
-          : "# couldn't clearly see your face — starting anyway, but try centering yourself in frame."
-      );
+      if (faceOk) {
+        appendLog("sys", "# face detected — starting interview.");
+      } else {
+        const warning =
+          "I can't clearly see your face. Please check that your camera is on and centered before we continue.";
+        appendLog("sys", "# " + warning);
+        await speak(warning);
+      }
       startFaceMonitor();
     } else {
       updateFaceBadge(true);
