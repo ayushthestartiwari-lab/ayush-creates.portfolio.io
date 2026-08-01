@@ -200,22 +200,32 @@
     el.faceBadge.className = "face-badge " + (visible ? "ok" : "warn");
   }
 
-  // polls until a face is seen, or times out (interview still proceeds
-  // either way — this is a nudge, not a hard gate)
-  function waitForFace(timeoutMs = 8000) {
-    return new Promise((resolve) => {
-      const startedAt = Date.now();
-      const poll = async () => {
-        const visible = await isFaceVisible();
-        updateFaceBadge(visible);
-        if (visible || Date.now() - startedAt > timeoutMs) {
-          resolve(visible);
-          return;
-        }
-        setTimeout(poll, 400);
-      };
-      poll();
-    });
+  // polls until a face is seen — pauses the interview flow (not just a
+  // warning) and periodically reminds the person out loud until it can
+  // actually see them. Fails open if the model never loaded.
+  async function ensureFaceVisibleBeforeSpeaking() {
+    let visible = await isFaceVisible();
+    updateFaceBadge(visible);
+    if (visible) return;
+
+    appendLog("sys", "# face not visible — pausing until you're back in frame.");
+    await speak(
+      "I can't see your face right now. Please make sure your camera is on and you're centered in frame."
+    );
+
+    let secondsWaited = 0;
+    while (!visible) {
+      await new Promise((r) => setTimeout(r, 1000));
+      visible = await isFaceVisible();
+      updateFaceBadge(visible);
+      secondsWaited++;
+      if (!visible && secondsWaited % 12 === 0) {
+        await speak("Still waiting — I need to see your face before we continue.");
+      }
+    }
+
+    appendLog("sys", "# face detected again — continuing.");
+    await speak("Great, I can see you now. Let's continue.");
   }
 
   function startFaceMonitor() {
@@ -365,7 +375,24 @@
   }
 
   // ---- interview flow ----
+  const ACK_PHRASES = [
+    "Okay, interesting.",
+    "Got it, thanks for sharing that.",
+    "That makes sense.",
+    "Nice, thanks for that.",
+    "Alright, I hear you.",
+    "Okay, good to know."
+  ];
+
+  function randomAck() {
+    return ACK_PHRASES[Math.floor(Math.random() * ACK_PHRASES.length)];
+  }
+
   async function runQuestion(index) {
+    // re-check the camera before every question, not just at the start —
+    // this is what catches someone stepping out of frame mid-interview
+    await ensureFaceVisibleBeforeSpeaking();
+
     const q = state.questions[index];
     el.questionCounter.textContent = `Q ${index + 1} / ${state.questions.length}`;
     appendLog("ai", q);
@@ -373,8 +400,15 @@
     await speak(q);
     const answer = await listenForAnswer();
     appendLog("user", answer);
-
     state.transcript.push({ question: q, answer });
+
+    // human-like beat before moving on, instead of firing the next
+    // question immediately
+    const isLast = index === state.questions.length - 1;
+    const transition =
+      randomAck() + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
+    appendLog("ai", transition);
+    await speak(transition);
   }
 
   async function runInterview() {
@@ -405,16 +439,7 @@
 
     const modelsOk = await ensureFaceModelsLoaded();
     if (modelsOk) {
-      const faceOk = await waitForFace(8000);
-      if (faceOk) {
-        appendLog("sys", "# face detected — starting interview.");
-      } else {
-        const warning =
-          "I can't clearly see your face. Please check that your camera is on and centered before we continue.";
-        appendLog("sys", "# " + warning);
-        await speak(warning);
-      }
-      startFaceMonitor();
+      startFaceMonitor(); // keeps the badge live throughout, gating happens per-question
     } else {
       updateFaceBadge(true);
     }
