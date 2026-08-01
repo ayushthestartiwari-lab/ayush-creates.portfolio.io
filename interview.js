@@ -43,6 +43,13 @@
       "How does Rust handle error handling without exceptions?",
       "Describe a project where you used Rust to solve a real problem."
     ],
+    html: [
+      "Tell me a bit about your experience with HTML.",
+      "What's the difference between a block-level and inline element?",
+      "Why do semantic tags like <header> or <article> matter over plain <div>s?",
+      "How would you make a form accessible to screen readers?",
+      "Describe a project where you built or structured a page from scratch."
+    ],
     general: [
       "Tell me a bit about yourself and what you're working on.",
       "Describe a challenging problem you solved recently.",
@@ -150,17 +157,66 @@
   // rate, dominant expression) into state.transcript[i].metrics.
 
   // ---- TTS (AI asks the question) ----
-  function speak(text) {
+  let cachedVoices = [];
+
+  function loadVoices() {
     return new Promise((resolve) => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length) {
+        resolve(voices);
+        return;
+      }
+      // voices load async in some browsers (esp. on first page load)
+      window.speechSynthesis.onvoiceschanged = () => {
+        resolve(window.speechSynthesis.getVoices());
+      };
+    });
+  }
+
+  function pickNaturalVoice(voices) {
+    // Edge ships high-quality Microsoft neural voices — these sound far
+    // more human than the default robotic system voice. Preference order:
+    // 1) Microsoft "Online (Natural)" voices (Edge)
+    // 2) Google voices (Chrome)
+    // 3) any English voice
+    // 4) whatever's first
+    const byNamePriority = [
+      (v) => /en-US/i.test(v.lang) && /natural/i.test(v.name),
+      (v) => /en-GB/i.test(v.lang) && /natural/i.test(v.name),
+      (v) => /natural/i.test(v.name),
+      (v) => /en-US/i.test(v.lang) && /google/i.test(v.name),
+      (v) => /en/i.test(v.lang) && /online/i.test(v.name),
+      (v) => /en-US/i.test(v.lang),
+      (v) => /en/i.test(v.lang)
+    ];
+
+    for (const test of byNamePriority) {
+      const match = voices.find(test);
+      if (match) return match;
+    }
+    return voices[0] || null;
+  }
+
+  function speak(text) {
+    return new Promise(async (resolve) => {
       if (!("speechSynthesis" in window)) {
-        // no TTS support — just resolve immediately, question is still
-        // shown as text in the transcript
         resolve();
         return;
       }
+
+      if (!cachedVoices.length) {
+        cachedVoices = await loadVoices();
+      }
+
       const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 1;
-      utter.pitch = 1;
+      const voice = pickNaturalVoice(cachedVoices);
+      if (voice) utter.voice = voice;
+
+      // slightly slower + softer pitch reads as calmer / more human than
+      // the 1/1 robotic default
+      utter.rate = 0.95;
+      utter.pitch = 1.02;
+
       el.micDot.className = "mic-dot speaking";
       el.micState.textContent = "AI speaking";
       utter.onend = () => resolve();
@@ -190,7 +246,22 @@
 
       recognition.onstart = () => {
         el.micDot.className = "mic-dot listening";
+        el.micState.textContent = "your turn — go ahead";
+      };
+
+      // fires once the API actually detects the person's voice, as
+      // opposed to onstart which just means the mic is open
+      recognition.onspeechstart = () => {
+        el.micDot.className = "mic-dot listening";
         el.micState.textContent = "listening...";
+      };
+
+      // fires when the API detects a pause long enough to mean the
+      // person is done — recognition.onend follows shortly after with
+      // the final transcript
+      recognition.onspeechend = () => {
+        el.micDot.className = "mic-dot";
+        el.micState.textContent = "processing your answer...";
       };
 
       recognition.onresult = (event) => {
@@ -243,6 +314,7 @@
     state.questions = QUESTION_BANKS[state.topic] || QUESTION_BANKS.general;
     state.transcript = [];
     state.currentIndex = -1;
+    state.reportRequested = false;
 
     el.startBtn.disabled = true;
     const ok = await requestMedia();
@@ -258,7 +330,7 @@
     runInterview();
   }
 
-  function endInterview() {
+  async function endInterview() {
     if (state.recognition) {
       try { state.recognition.stop(); } catch (e) { /* noop */ }
     }
@@ -269,15 +341,98 @@
 
     el.interviewPanel.hidden = true;
     el.reportPanel.hidden = false;
+    el.reportBody.textContent = ">>> generating report...";
 
-    // TODO Phase 3: POST state.transcript (+ face metrics) to
-    // /api/interview-report, render the returned report here instead
-    // of this placeholder.
-    el.reportBody.textContent =
-      "# report generation not wired up yet (Phase 3)\n\n" +
-      state.transcript
-        .map((t, i) => `Q${i + 1}: ${t.question}\nA${i + 1}: ${t.answer}\n`)
-        .join("\n");
+    // avoid double-submit if endInterview somehow fires twice
+    if (state.reportRequested) return;
+    state.reportRequested = true;
+
+    try {
+      const res = await fetch("/api/interview-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: state.topic,
+          transcript: state.transcript
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        el.reportBody.textContent =
+          `# error generating report\n${data.error || "unknown error"}${
+            data.detail ? "\n" + data.detail : ""
+          }`;
+        return;
+      }
+
+      renderReport(data.report);
+    } catch (err) {
+      el.reportBody.textContent = `# network error generating report\n${err.message}`;
+    }
+  }
+
+  function renderReport(report) {
+    el.reportBody.innerHTML = "";
+
+    const addBlock = (label, contentEl) => {
+      const wrap = document.createElement("div");
+      wrap.className = "report-block";
+      const heading = document.createElement("p");
+      heading.className = "sys-line";
+      heading.textContent = `# ${label}`;
+      wrap.appendChild(heading);
+      wrap.appendChild(contentEl);
+      el.reportBody.appendChild(wrap);
+    };
+
+    const scoreLine = document.createElement("p");
+    scoreLine.className = "ai-line";
+    scoreLine.textContent = `overall_score: ${report.overall_score} / 10`;
+    addBlock("summary", scoreLine);
+
+    const summaryP = document.createElement("p");
+    summaryP.className = "term-line";
+    summaryP.textContent = report.summary || "";
+    el.reportBody.appendChild(summaryP);
+
+    const strengthsList = document.createElement("ul");
+    (report.strengths || []).forEach((s) => {
+      const li = document.createElement("li");
+      li.textContent = s;
+      strengthsList.appendChild(li);
+    });
+    addBlock("strengths", strengthsList);
+
+    const improveList = document.createElement("ul");
+    (report.areas_to_improve || []).forEach((s) => {
+      const li = document.createElement("li");
+      li.textContent = s;
+      improveList.appendChild(li);
+    });
+    addBlock("areas_to_improve", improveList);
+
+    const perQWrap = document.createElement("div");
+    (report.per_question_feedback || []).forEach((item) => {
+      const q = document.createElement("p");
+      q.className = "ai-line";
+      q.textContent = item.question;
+      const f = document.createElement("p");
+      f.className = "user-line";
+      f.textContent = item.feedback;
+      perQWrap.appendChild(q);
+      perQWrap.appendChild(f);
+    });
+    addBlock("per_question_feedback", perQWrap);
+
+    const nextList = document.createElement("ul");
+    (report.next_steps || []).forEach((s) => {
+      const li = document.createElement("li");
+      li.textContent = s;
+      nextList.appendChild(li);
+    });
+    addBlock("next_steps", nextList);
   }
 
   function resetToSetup() {
