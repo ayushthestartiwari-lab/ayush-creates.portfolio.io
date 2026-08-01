@@ -261,7 +261,7 @@
 
     const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
 
-    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 5000));
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 3000));
     const load = (async () => {
       try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -404,7 +404,7 @@
 
       // slightly slower + softer pitch reads as calmer / more human than
       // the 1/1 robotic default
-      utter.rate = 0.95;
+      utter.rate = 1.05;
       utter.pitch = 1.02;
 
       el.micDot.className = "mic-dot speaking";
@@ -571,6 +571,31 @@
     return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
+  // asks the fast Groq endpoint for a content-aware one-liner reacting to
+  // the actual answer — races against a short timeout so a slow/failed
+  // call NEVER holds up the interview; falls back to a canned line
+  async function getSmartAck(question, answer) {
+    if (isStuckAnswer(answer)) return null; // handled separately by the stuck-response flow
+
+    const fetchAck = (async () => {
+      try {
+        const res = await fetch("/api/interview-ack", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, answer })
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.ack || null;
+      } catch (err) {
+        return null;
+      }
+    })();
+
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+    return Promise.race([fetchAck, timeout]);
+  }
+
   async function runQuestion(index) {
     // re-check the camera before every question, not just at the start —
     // this is what catches someone stepping out of frame mid-interview
@@ -608,11 +633,12 @@
 
     state.transcript.push({ question: q, answer });
 
-    // human-like beat before moving on, instead of firing the next
-    // question immediately
+    // human-like beat before moving on — a content-aware reaction if the
+    // fast AI call comes back in time, a canned one otherwise
+    const smartAck = await getSmartAck(q, answer);
     const isLast = index === state.questions.length - 1;
     const transition =
-      randomAck() + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
+      (smartAck || randomAck()) + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
     appendLog("ai", transition);
     await speak(transition);
   }
