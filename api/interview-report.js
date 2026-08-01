@@ -90,57 +90,75 @@ Write a report for the student. Respond ONLY with valid JSON, no markdown fences
   "next_steps": ["<concrete, actionable suggestion>", "<concrete, actionable suggestion>"]
 }`;
 
-  // ---- call Gemini, with a hard timeout ----
-  const controller = new AbortController();
-  const timeoutHandle = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  // ---- call Gemini, with a hard timeout and retries for transient overload ----
+  const MAX_ATTEMPTS = 3;
+  let geminiRes, data;
 
-  let geminiRes;
-  try {
-    geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey // key in header, not query string
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.4,
-            responseMimeType: "application/json"
-          }
-        }),
-        signal: controller.signal
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timeoutHandle = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+    try {
+      geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey // key in header, not query string
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.4,
+              responseMimeType: "application/json"
+            }
+          }),
+          signal: controller.signal
+        }
+      );
+    } catch (err) {
+      clearTimeout(timeoutHandle);
+      if (err.name === "AbortError") {
+        console.error("Gemini request timed out after", GEMINI_TIMEOUT_MS, "ms");
+        res.status(504).json({ error: "gemini_timeout", detail: "the AI took too long to respond — please try again" });
+        return;
       }
-    );
-  } catch (err) {
-    clearTimeout(timeoutHandle);
-    if (err.name === "AbortError") {
-      console.error("Gemini request timed out after", GEMINI_TIMEOUT_MS, "ms");
-      res.status(504).json({ error: "gemini_timeout", detail: "the AI took too long to respond — please try again" });
+      console.error("Gemini request failed:", err);
+      res.status(502).json({ error: "gemini_unreachable", detail: err.message });
       return;
     }
-    console.error("Gemini request failed:", err);
-    res.status(502).json({ error: "gemini_unreachable", detail: err.message });
-    return;
-  }
-  clearTimeout(timeoutHandle);
+    clearTimeout(timeoutHandle);
 
-  let data;
-  try {
-    data = await geminiRes.json();
-  } catch (err) {
-    console.error("Failed to parse Gemini response as JSON:", err);
-    res.status(502).json({ error: "gemini_bad_response" });
-    return;
+    // 503 = model overloaded, a transient condition worth retrying
+    if (geminiRes.status === 503 && attempt < MAX_ATTEMPTS) {
+      const backoffMs = attempt * 800; // 800ms, then 1600ms
+      console.warn(`Gemini overloaded (503), retrying in ${backoffMs}ms — attempt ${attempt}/${MAX_ATTEMPTS}`);
+      await new Promise((r) => setTimeout(r, backoffMs));
+      continue;
+    }
+
+    try {
+      data = await geminiRes.json();
+    } catch (err) {
+      console.error("Failed to parse Gemini response as JSON:", err);
+      res.status(502).json({ error: "gemini_bad_response" });
+      return;
+    }
+    break; // got a response (success or non-retryable error) — stop looping
   }
 
   if (!geminiRes.ok) {
     console.error("Gemini API error:", geminiRes.status, JSON.stringify(data));
-    // surface 429 distinctly so the frontend can show a "quota" message
-    const status = geminiRes.status === 429 ? 429 : 502;
-    res.status(status).json({ error: "gemini_error", detail: data?.error?.message || "unknown error" });
+    let status = 502;
+    let detail = data?.error?.message || "unknown error";
+    if (geminiRes.status === 429) {
+      status = 429;
+    } else if (geminiRes.status === 503) {
+      status = 503;
+      detail = "the AI model is currently overloaded — please try again in a moment";
+    }
+    res.status(status).json({ error: "gemini_error", detail });
     return;
   }
 
