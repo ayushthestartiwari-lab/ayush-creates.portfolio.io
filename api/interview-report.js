@@ -1,22 +1,24 @@
 // api/interview-report.js
 //
-// Vercel serverless function. Takes an interview transcript and makes ONE
-// Gemini call to generate a structured interview report.
+// Vercel serverless function. Takes an interview transcript and generates
+// a structured interview report.
 //
-// Uses its own API key (GEMINI_API_KEY_INTERVIEW) so this feature's quota
-// is fully separate from BeAI's chat quota. Reuses the same Upstash Redis
-// REST setup as BeAI for per-visitor daily rate limiting.
+// Provider strategy: Groq is tried first (dedicated LPU hardware, rarely
+// overloaded, fast) — Gemini is the fallback if Groq fails for any reason.
+// Each provider has its own API key/quota, fully separate from BeAI's key.
+//
+// Reuses the same Upstash Redis REST setup as BeAI for per-visitor daily
+// rate limiting.
 
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 const GEMINI_MODEL = "gemini-3.6-flash";
-const GEMINI_FALLBACK_MODEL = "gemini-2.5-flash"; // used if the primary model stays overloaded
-const GEMINI_TIMEOUT_MS = 25000; // fail cleanly before Vercel force-kills the function
-const DAILY_LIMIT = 5; // successful reports per visitor per day
-const MAX_QUESTIONS = 10; // hard cap on transcript size accepted
-const MAX_ANSWER_CHARS = 2000; // per-answer cap, guards against oversized payloads
+const GEMINI_FALLBACK_MODEL = "gemini-2.5-flash";
 
-// Vercel Serverless Function config — raises the max execution time where
-// the plan allows it (Hobby is capped at 10s regardless of this setting;
-// Pro allows up to 60s). Safe to leave even on Hobby.
+const REQUEST_TIMEOUT_MS = 20000; // per provider attempt
+const DAILY_LIMIT = 5; // successful reports per visitor per day
+const MAX_QUESTIONS = 10;
+const MAX_ANSWER_CHARS = 2000;
+
 module.exports.config = { maxDuration: 30 };
 
 module.exports = async function handler(req, res) {
@@ -25,9 +27,11 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.GEMINI_API_KEY_INTERVIEW;
-  if (!apiKey) {
-    console.error("Missing GEMINI_API_KEY_INTERVIEW env var");
+  const groqKey = process.env.GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY_INTERVIEW;
+
+  if (!groqKey && !geminiKey) {
+    console.error("Missing both GROQ_API_KEY and GEMINI_API_KEY_INTERVIEW");
     res.status(500).json({ error: "server_misconfigured" });
     return;
   }
@@ -39,7 +43,6 @@ module.exports = async function handler(req, res) {
     res.status(400).json({ error: "invalid_transcript", detail: "transcript must be a non-empty array" });
     return;
   }
-
   if (transcript.length > MAX_QUESTIONS) {
     res.status(400).json({ error: "invalid_transcript", detail: `too many questions (max ${MAX_QUESTIONS})` });
     return;
@@ -72,13 +75,7 @@ module.exports = async function handler(req, res) {
     .map((t, i) => `Q${i + 1}: ${t.question}\nA${i + 1}: ${t.answer}`)
     .join("\n\n");
 
-  const prompt = `You are an experienced technical interview coach reviewing a mock interview transcript for a student learning ${safeTopic} on a platform called Be Ahead.
-
-Below is the full Q&A transcript from a spoken mock interview:
-
-${transcriptText}
-
-Write a report for the student. Respond ONLY with valid JSON, no markdown fences, no preamble, matching exactly this shape:
+  const systemPrompt = `You are an experienced technical interview coach reviewing a mock interview transcript for a student learning ${safeTopic} on a platform called Be Ahead. Respond ONLY with valid JSON, no markdown fences, no preamble, matching exactly this shape:
 
 {
   "overall_score": <integer 1-10>,
@@ -91,94 +88,39 @@ Write a report for the student. Respond ONLY with valid JSON, no markdown fences
   "next_steps": ["<concrete, actionable suggestion>", "<concrete, actionable suggestion>"]
 }`;
 
-  // ---- call Gemini, with a hard timeout and retries for transient overload ----
-  const MAX_ATTEMPTS_PER_MODEL = 2;
-  const modelsToTry = [GEMINI_MODEL, GEMINI_FALLBACK_MODEL];
-  let geminiRes, data;
+  const userPrompt = `Here is the full Q&A transcript from a spoken mock interview:\n\n${transcriptText}`;
 
-  outer: for (const model of modelsToTry) {
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_MODEL; attempt++) {
-      const controller = new AbortController();
-      const timeoutHandle = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  // ---- try providers in order: Groq first, Gemini as fallback ----
+  let rawText = null;
+  let lastError = null;
 
-      try {
-        geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": apiKey // key in header, not query string
-            },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.4,
-                responseMimeType: "application/json"
-              }
-            }),
-            signal: controller.signal
-          }
-        );
-      } catch (err) {
-        clearTimeout(timeoutHandle);
-        if (err.name === "AbortError") {
-          console.error(`Gemini (${model}) timed out after`, GEMINI_TIMEOUT_MS, "ms");
-          continue; // try next attempt/model rather than failing outright
-        }
-        console.error(`Gemini (${model}) request failed:`, err);
-        continue;
-      }
-      clearTimeout(timeoutHandle);
-
-      // 503 = model overloaded, a transient condition worth retrying —
-      // and worth switching models for, if retries on this one are used up
-      if (geminiRes.status === 503) {
-        const isLastAttemptForModel = attempt === MAX_ATTEMPTS_PER_MODEL;
-        if (!isLastAttemptForModel) {
-          const backoffMs = attempt * 800;
-          console.warn(`Gemini (${model}) overloaded, retrying in ${backoffMs}ms — attempt ${attempt}/${MAX_ATTEMPTS_PER_MODEL}`);
-          await new Promise((r) => setTimeout(r, backoffMs));
-          continue;
-        }
-        console.warn(`Gemini (${model}) still overloaded after ${MAX_ATTEMPTS_PER_MODEL} attempts — trying next model if available`);
-        continue outer;
-      }
-
-      try {
-        data = await geminiRes.json();
-      } catch (err) {
-        console.error("Failed to parse Gemini response as JSON:", err);
-        res.status(502).json({ error: "gemini_bad_response" });
-        return;
-      }
-      break outer; // got a usable response (success or non-retryable error)
+  if (groqKey) {
+    try {
+      rawText = await callGroq(groqKey, systemPrompt, userPrompt);
+    } catch (err) {
+      console.error("Groq failed, falling back to Gemini:", err.message);
+      lastError = err;
     }
   }
 
-  if (!geminiRes) {
-    res.status(502).json({ error: "gemini_unreachable", detail: "could not reach any Gemini model" });
-    return;
-  }
-
-  if (!geminiRes.ok) {
-    console.error("Gemini API error:", geminiRes.status, JSON.stringify(data));
-    let status = 502;
-    let detail = data?.error?.message || "unknown error";
-    if (geminiRes.status === 429) {
-      status = 429;
-    } else if (geminiRes.status === 503) {
-      status = 503;
-      detail = "the AI models are currently overloaded — please try again in a moment";
+  if (!rawText && geminiKey) {
+    for (const model of [GEMINI_MODEL, GEMINI_FALLBACK_MODEL]) {
+      try {
+        rawText = await callGemini(geminiKey, model, `${systemPrompt}\n\n${userPrompt}`);
+        break;
+      } catch (err) {
+        console.error(`Gemini (${model}) failed:`, err.message);
+        lastError = err;
+      }
     }
-    res.status(status).json({ error: "gemini_error", detail });
-    return;
   }
 
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!rawText) {
-    console.error("Unexpected Gemini response shape:", JSON.stringify(data));
-    res.status(502).json({ error: "empty_response_from_gemini" });
+    const status = lastError?.status || 502;
+    res.status(status === 429 ? 429 : 502).json({
+      error: "all_providers_failed",
+      detail: lastError?.message || "could not reach any AI provider"
+    });
     return;
   }
 
@@ -187,8 +129,8 @@ Write a report for the student. Respond ONLY with valid JSON, no markdown fences
     const cleaned = rawText.replace(/```json|```/g, "").trim();
     report = JSON.parse(cleaned);
   } catch (parseErr) {
-    console.error("Failed to parse Gemini JSON:", rawText);
-    res.status(502).json({ error: "invalid_json_from_gemini" });
+    console.error("Failed to parse AI JSON output:", rawText);
+    res.status(502).json({ error: "invalid_json_from_ai" });
     return;
   }
 
@@ -200,9 +142,98 @@ Write a report for the student. Respond ONLY with valid JSON, no markdown fences
   res.status(200).json({ report: safeReport });
 };
 
+// ---- provider calls ----
+
+async function callGroq(apiKey, systemPrompt, userPrompt) {
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.4,
+        response_format: { type: "json_object" }
+      }),
+      signal: controller.signal
+    });
+  } catch (err) {
+    clearTimeout(timeoutHandle);
+    if (err.name === "AbortError") throw makeErr("Groq request timed out", 504);
+    throw makeErr(`Groq unreachable: ${err.message}`, 502);
+  }
+  clearTimeout(timeoutHandle);
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const msg = data?.error?.message || `Groq returned ${response.status}`;
+    throw makeErr(msg, response.status);
+  }
+
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw makeErr("Groq returned an empty response", 502);
+  return text;
+}
+
+async function callGemini(apiKey, model, prompt) {
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.4, responseMimeType: "application/json" }
+        }),
+        signal: controller.signal
+      }
+    );
+  } catch (err) {
+    clearTimeout(timeoutHandle);
+    if (err.name === "AbortError") throw makeErr(`Gemini (${model}) timed out`, 504);
+    throw makeErr(`Gemini (${model}) unreachable: ${err.message}`, 502);
+  }
+  clearTimeout(timeoutHandle);
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const msg = data?.error?.message || `Gemini (${model}) returned ${response.status}`;
+    throw makeErr(msg, response.status);
+  }
+
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw makeErr(`Gemini (${model}) returned an empty response`, 502);
+  return text;
+}
+
+function makeErr(message, status) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
 // ---- helpers ----
 
-/** Coerces the model's output into a shape the frontend can always render safely. */
 function normalizeReport(report) {
   const score = Number(report.overall_score);
   return {
@@ -230,11 +261,10 @@ function getVisitorId(req) {
 }
 
 function todayKey(visitorId) {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const today = new Date().toISOString().slice(0, 10);
   return `interview_report:${visitorId}:${today}`;
 }
 
-/** Returns remaining quota for today, or null if Upstash isn't configured (fail open). */
 async function getRemainingQuota(visitorId) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -250,11 +280,10 @@ async function getRemainingQuota(visitorId) {
     return DAILY_LIMIT - count;
   } catch (err) {
     console.error("rate limit read failed:", err);
-    return null; // fail open
+    return null;
   }
 }
 
-/** Increments today's count for this visitor, setting a 24h expiry on first hit. */
 async function incrementQuota(visitorId) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
