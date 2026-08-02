@@ -151,7 +151,9 @@
     timerHandle: null,
     stream: null,
     recognition: null,
-    listening: false
+    listening: false,
+    ended: false, // true once the interview has been ended (early or naturally) — guards the loop
+    reportRequested: false
   };
 
   // ---- DOM refs ----
@@ -240,6 +242,7 @@
 
   let faceModelsLoaded = false;
   let faceMonitorHandle = null;
+  let faceMonitorRunning = false; // guards against overlapping detector calls if one is slow
   const faceStats = {}; // { [questionIndex]: { visible: n, total: n, lookAwayEvents: n } }
 
   function recordFaceSample(index, visible) {
@@ -300,6 +303,8 @@
   // warning) and periodically reminds the person out loud until it can
   // actually see them. Fails open if the model never loaded.
   async function ensureFaceVisibleBeforeSpeaking() {
+    if (state.ended) return;
+
     let visible = await isFaceVisible();
     updateFaceBadge(visible);
     if (visible) return;
@@ -312,6 +317,7 @@
 
     let secondsWaited = 0;
     while (!visible) {
+      if (state.ended) return; // interview was ended while we were waiting on the face
       await new Promise((r) => setTimeout(r, 1000));
       visible = await isFaceVisible();
       updateFaceBadge(visible);
@@ -325,18 +331,28 @@
     await speak("Great, I can see you now. Let's continue.");
   }
 
+  // self-rescheduling instead of setInterval so a slow detection call on a
+  // lower-end device can never overlap with the next tick
   function startFaceMonitor() {
     stopFaceMonitor();
-    faceMonitorHandle = setInterval(async () => {
+    faceMonitorRunning = true;
+
+    const tick = async () => {
+      if (!faceMonitorRunning) return;
       const visible = await isFaceVisible();
+      if (!faceMonitorRunning) return; // stopped while the detection call was in flight
       updateFaceBadge(visible);
       recordFaceSample(state.currentIndex, visible);
-    }, 1200);
+      faceMonitorHandle = setTimeout(tick, 1200);
+    };
+
+    faceMonitorHandle = setTimeout(tick, 1200);
   }
 
   function stopFaceMonitor() {
+    faceMonitorRunning = false;
     if (faceMonitorHandle) {
-      clearInterval(faceMonitorHandle);
+      clearTimeout(faceMonitorHandle);
       faceMonitorHandle = null;
     }
   }
@@ -389,6 +405,11 @@
 
   function speak(text) {
     return new Promise(async (resolve) => {
+      if (state.ended) {
+        resolve();
+        return;
+      }
+
       if (!("speechSynthesis" in window)) {
         resolve();
         return;
@@ -439,6 +460,11 @@
   // a couple seconds mid-answer will no longer get cut off.
   function listenForAnswer() {
     return new Promise((resolve) => {
+      if (state.ended) {
+        resolve("(interview ended)");
+        return;
+      }
+
       const SpeechRecognition =
         window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -597,20 +623,27 @@
   }
 
   async function runQuestion(index) {
+    if (state.ended) return;
+
     // re-check the camera before every question, not just at the start —
     // this is what catches someone stepping out of frame mid-interview
     await ensureFaceVisibleBeforeSpeaking();
+    if (state.ended) return; // could've been ended while waiting on the face
 
     let q = state.questions[index];
     let alreadySwapped = false;
     let answer;
 
     while (true) {
+      if (state.ended) return;
+
       el.questionCounter.textContent = `Q ${index + 1} / ${state.questions.length}`;
       appendLog("ai", q);
       await speak(q);
+      if (state.ended) return;
 
       answer = await listenForAnswer();
+      if (state.ended) return;
       appendLog("user", answer);
 
       if (isStuckAnswer(answer) && !alreadySwapped) {
@@ -618,6 +651,7 @@
         const comfort = randomStuckResponse();
         appendLog("ai", comfort);
         await speak(comfort);
+        if (state.ended) return;
 
         const replacement = pickReplacementQuestion(state.topic, state.questions);
         if (replacement) {
@@ -636,6 +670,8 @@
     // human-like beat before moving on — a content-aware reaction if the
     // fast AI call comes back in time, a canned one otherwise
     const smartAck = await getSmartAck(q, answer);
+    if (state.ended) return;
+
     const isLast = index === state.questions.length - 1;
     const transition =
       (smartAck || randomAck()) + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
@@ -649,12 +685,15 @@
       `Just relax and answer naturally, like you would in a real conversation. Let's get started.`;
     appendLog("ai", greeting);
     await speak(greeting);
+    if (state.ended) return;
 
     for (let i = 0; i < state.questions.length; i++) {
+      if (state.ended) return; // bail immediately if the interview was ended early
       state.currentIndex = i;
       await runQuestion(i);
     }
-    endInterview();
+
+    if (!state.ended) endInterview();
   }
 
   async function startInterview() {
@@ -665,6 +704,7 @@
     state.transcript = [];
     state.currentIndex = -1;
     state.reportRequested = false;
+    state.ended = false;
 
     el.startBtn.disabled = true;
     const ok = await requestMedia();
@@ -691,6 +731,12 @@
   }
 
   async function endInterview() {
+    // set this FIRST — any in-flight speak()/listenForAnswer()/runQuestion()
+    // step checks this flag as soon as it wakes up and bails instead of
+    // continuing to the next question on a stream/mic that's about to die
+    if (state.ended) return; // already ending/ended — avoid double teardown
+    state.ended = true;
+
     if (state.recognition) {
       try { state.recognition.stop(); } catch (e) { /* noop */ }
     }
