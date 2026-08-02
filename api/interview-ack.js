@@ -9,9 +9,16 @@
 // enough not to slow the interview down. If it's not fast, the frontend
 // just uses a canned line instead; this endpoint is a nice-to-have, not
 // a blocker.
+//
+// Reuses the same Upstash Redis REST setup as interview-report.js for
+// per-visitor daily rate limiting — this endpoint has no auth of its own,
+// so without a cap it could be hit directly (bypassing the frontend) in
+// a loop and burn through Groq quota.
 
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const REQUEST_TIMEOUT_MS = 3000; // tight — this must never noticeably slow the interview
+const DAILY_LIMIT = 100; // acks per visitor per day — generous, since ~5 fire per interview
+const MAX_ACK_WORDS = 30; // hard cap in case the model ignores the "under 20 words" instruction
 
 module.exports.config = { maxDuration: 10 };
 
@@ -33,8 +40,25 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const trimmedAnswer = answer.trim();
+  if (!trimmedAnswer) {
+    // nothing worth reacting to — let the frontend fall back to a canned
+    // line instead of spending a Groq call on an empty answer
+    res.status(400).json({ error: "empty_answer" });
+    return;
+  }
+
   const safeQuestion = question.slice(0, 300);
-  const safeAnswer = answer.slice(0, 800);
+  const safeAnswer = trimmedAnswer.slice(0, 800);
+  const visitorId = getVisitorId(req);
+
+  const remaining = await getRemainingQuota(visitorId);
+  if (remaining !== null && remaining <= 0) {
+    // over quota — fail fast and quiet, the frontend already treats any
+    // non-200 here as "use the canned line", no need for a detailed error
+    res.status(429).json({ error: "daily_limit_reached" });
+    return;
+  }
 
   const prompt =
     `You are a friendly technical interviewer. The candidate was just asked: "${safeQuestion}" ` +
@@ -70,16 +94,81 @@ module.exports = async function handler(req, res) {
 
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content?.trim();
-
     if (!text) {
       res.status(502).json({ error: "empty_response" });
       return;
     }
 
-    res.status(200).json({ ack: text.replace(/^["']|["']$/g, "") });
+    const ack = capWords(text.replace(/^["']|["']$/g, ""), MAX_ACK_WORDS);
+
+    // only consume quota once we actually have a usable ack to send back
+    await incrementQuota(visitorId);
+
+    res.status(200).json({ ack });
   } catch (err) {
     clearTimeout(timeoutHandle);
     const status = err.name === "AbortError" ? 504 : 502;
     res.status(status).json({ error: "ack_failed" });
   }
 };
+
+// ---- helpers ----
+
+function capWords(text, maxWords) {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "...";
+}
+
+function getVisitorId(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  const ip = (Array.isArray(fwd) ? fwd[0] : fwd || req.socket?.remoteAddress || "unknown")
+    .split(",")[0]
+    .trim();
+  return ip;
+}
+
+function todayKey(visitorId) {
+  const today = new Date().toISOString().slice(0, 10);
+  return `interview_ack:${visitorId}:${today}`;
+}
+
+async function getRemainingQuota(visitorId) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null; // no Redis configured — fail open, don't block the interview
+
+  try {
+    const key = todayKey(visitorId);
+    const getRes = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const getData = await getRes.json();
+    const count = getData?.result ? parseInt(getData.result, 10) : 0;
+    return DAILY_LIMIT - count;
+  } catch (err) {
+    console.error("rate limit read failed:", err);
+    return null; // fail open — a Redis hiccup shouldn't break the interview
+  }
+}
+
+async function incrementQuota(visitorId) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return;
+
+  try {
+    const key = todayKey(visitorId);
+    const incrRes = await fetch(`${url}/incr/${encodeURIComponent(key)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const incrData = await incrRes.json();
+    if (incrData?.result === 1) {
+      await fetch(`${url}/expire/${encodeURIComponent(key)}/86400`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    }
+  } catch (err) {
+    console.error("rate limit increment failed:", err);
+  }
+}
