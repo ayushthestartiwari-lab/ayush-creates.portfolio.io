@@ -1,9 +1,13 @@
 // api/interview-ack.js
 //
 // Lightweight, fast endpoint used DURING the interview (not the final
-// report). Generates a one-sentence, content-aware reaction to the
-// person's answer — e.g. "Good point about garbage collection being
-// automatic" instead of a generic "Okay, interesting."
+// report). Two modes:
+//
+// 1. Plain ack (default): one-sentence, content-aware reaction to the
+//    person's answer.
+// 2. Follow-up (wantFollowUp: true): a reaction PLUS one natural
+//    follow-up question about something specific they mentioned — makes
+//    the interview feel like a real conversation instead of rapid-fire Q&A.
 //
 // Groq only (no Gemini fallback here) — this call needs to be fast
 // enough not to slow the interview down. If it's not fast, the frontend
@@ -17,8 +21,9 @@
 
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const REQUEST_TIMEOUT_MS = 3000; // tight — this must never noticeably slow the interview
-const DAILY_LIMIT = 100; // acks per visitor per day — generous, since ~5 fire per interview
-const MAX_ACK_WORDS = 30; // hard cap in case the model ignores the "under 20 words" instruction
+const DAILY_LIMIT = 100; // acks per visitor per day — generous, since ~5-8 fire per interview
+const MAX_ACK_WORDS = 30; // hard cap in case the model ignores the word-limit instruction
+const MAX_FOLLOWUP_WORDS = 40; // follow-ups are reaction + question, so allow a bit more room
 
 module.exports.config = { maxDuration: 10 };
 
@@ -34,7 +39,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { question, answer } = req.body || {};
+  const { question, answer, wantFollowUp } = req.body || {};
   if (typeof question !== "string" || typeof answer !== "string") {
     res.status(400).json({ error: "invalid_input" });
     return;
@@ -50,6 +55,7 @@ module.exports = async function handler(req, res) {
 
   const safeQuestion = question.slice(0, 300);
   const safeAnswer = trimmedAnswer.slice(0, 800);
+  const isFollowUp = wantFollowUp === true;
   const visitorId = getVisitorId(req);
 
   const remaining = await getRemainingQuota(visitorId);
@@ -60,12 +66,18 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const prompt =
-    `You are a friendly technical interviewer. The candidate was just asked: "${safeQuestion}" ` +
-    `and answered: "${safeAnswer}". ` +
-    `Reply with ONE short, natural, conversational sentence reacting specifically to what they said — ` +
-    `like a real interviewer would (e.g. referencing a detail they mentioned, or gently noting if it was vague). ` +
-    `Do not ask a new question. Do not use markdown. Keep it under 20 words. Reply with just the sentence, nothing else.`;
+  const prompt = isFollowUp
+    ? `You are a friendly technical interviewer having a natural conversation. The candidate was just asked: "${safeQuestion}" ` +
+      `and answered: "${safeAnswer}". ` +
+      `Write ONE short, natural reaction to something specific they said, immediately followed by ONE relevant follow-up ` +
+      `question that digs a little deeper into their answer — the way a real interviewer would casually probe further. ` +
+      `Keep it conversational, not formal. Do not use markdown. Keep the whole thing under 35 words total. ` +
+      `Reply with just the reaction and question, nothing else.`
+    : `You are a friendly technical interviewer. The candidate was just asked: "${safeQuestion}" ` +
+      `and answered: "${safeAnswer}". ` +
+      `Reply with ONE short, natural, conversational sentence reacting specifically to what they said — ` +
+      `like a real interviewer would (e.g. referencing a detail they mentioned, or gently noting if it was vague). ` +
+      `Do not ask a new question. Do not use markdown. Keep it under 20 words. Reply with just the sentence, nothing else.`;
 
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -80,8 +92,8 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: GROQ_MODEL,
         messages: [{ role: "user", content: prompt }],
-        temperature: 0.6,
-        max_tokens: 40
+        temperature: 0.7,
+        max_tokens: isFollowUp ? 70 : 40
       }),
       signal: controller.signal
     });
@@ -99,12 +111,13 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const ack = capWords(text.replace(/^["']|["']$/g, ""), MAX_ACK_WORDS);
+    const maxWords = isFollowUp ? MAX_FOLLOWUP_WORDS : MAX_ACK_WORDS;
+    const ack = capWords(text.replace(/^["']|["']$/g, ""), maxWords);
 
     // only consume quota once we actually have a usable ack to send back
     await incrementQuota(visitorId);
 
-    res.status(200).json({ ack });
+    res.status(200).json({ ack, isFollowUp });
   } catch (err) {
     clearTimeout(timeoutHandle);
     const status = err.name === "AbortError" ? 504 : 502;
