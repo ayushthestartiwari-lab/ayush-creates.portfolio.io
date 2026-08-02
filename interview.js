@@ -294,14 +294,15 @@
     console.log("[face] starting MediaPipe load...");
     const loadStartedAt = performance.now();
 
-    const timeout = new Promise((resolve) =>
-      setTimeout(() => {
+    let timeoutHandle;
+    const timeout = new Promise((resolve) => {
+      timeoutHandle = setTimeout(() => {
         console.error(
           `[face] load TIMED OUT after ${FACE_MODEL_LOAD_TIMEOUT_MS}ms — face tracking disabled for this session`
         );
         resolve(false);
-      }, FACE_MODEL_LOAD_TIMEOUT_MS)
-    );
+      }, FACE_MODEL_LOAD_TIMEOUT_MS);
+    });
 
     const load = (async () => {
       console.log("[face] importing @mediapipe/tasks-vision module...");
@@ -356,6 +357,7 @@
     })();
 
     const result = await Promise.race([load, timeout]);
+    clearTimeout(timeoutHandle);
     if (!result && faceModelsLoaded) {
       // load actually finished successfully after the timeout already
       // resolved false — rare, but don't leave the caller thinking it failed
