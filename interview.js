@@ -236,25 +236,43 @@
     }
   }
 
-  // TODO Phase 2 (full): also draw landmarks to #faceCanvas and derive
-  // eye-contact / expression metrics for the report. For now this only
-  // confirms a face is actually visible before/during the interview.
+  // ---- face tracking: presence + gaze ----
+  // Presence ("visible") gates pausing the interview — it's about whether
+  // they're physically in frame. Gaze ("lookingAtCamera") is a lighter-touch
+  // signal used only for the eye-contact stat in the report — glancing at
+  // notes shouldn't pause anything, it should just show up as lower % later.
 
-  let faceModelsLoaded = false;
+  let faceModelsLoaded = false; // detector ready (presence detection works)
+  let landmarksLoaded = false; // landmark model ready (real gaze detection works)
   let faceMonitorHandle = null;
   let faceMonitorRunning = false; // guards against overlapping detector calls if one is slow
-  const faceStats = {}; // { [questionIndex]: { visible: n, total: n, lookAwayEvents: n } }
 
-  function recordFaceSample(index, visible) {
+  const faceStats = {}; // { [questionIndex]: { visibleCount, lookingCount, total, lookAwayEvents } }
+
+  // rolling-window majority vote so a single bad frame (motion blur, brief
+  // occlusion) doesn't flicker the badge or pollute the stats
+  const SMOOTHING_WINDOW = 3;
+  let recentVisible = [];
+  let recentLooking = [];
+
+  function pushSmoothed(buffer, value) {
+    buffer.push(value);
+    if (buffer.length > SMOOTHING_WINDOW) buffer.shift();
+    const trueCount = buffer.filter(Boolean).length;
+    return trueCount > buffer.length / 2;
+  }
+
+  function recordFaceSample(index, visible, lookingAtCamera) {
     if (index < 0) return; // not in a question yet (e.g. during greeting)
-    if (!faceStats[index]) faceStats[index] = { visible: 0, total: 0, lookAwayEvents: 0 };
+    if (!faceStats[index]) faceStats[index] = { visibleCount: 0, lookingCount: 0, total: 0, lookAwayEvents: 0 };
     faceStats[index].total++;
-    if (visible) faceStats[index].visible++;
+    if (visible) faceStats[index].visibleCount++;
+    if (lookingAtCamera) faceStats[index].lookingCount++;
   }
 
   function recordLookAwayEvent(index) {
     if (index < 0) return;
-    if (!faceStats[index]) faceStats[index] = { visible: 0, total: 0, lookAwayEvents: 0 };
+    if (!faceStats[index]) faceStats[index] = { visibleCount: 0, lookingCount: 0, total: 0, lookAwayEvents: 0 };
     faceStats[index].lookAwayEvents++;
   }
 
@@ -263,15 +281,25 @@
     if (typeof faceapi === "undefined") return false; // CDN blocked/failed
 
     const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 4000));
 
-    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 3000));
     const load = (async () => {
       try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         faceModelsLoaded = true;
+
+        // landmarks are what make real gaze detection possible — load them
+        // separately so a failure here still leaves presence detection working
+        try {
+          await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
+          landmarksLoaded = true;
+        } catch (err) {
+          console.error("face landmark model load failed — falling back to presence-only detection:", err);
+        }
+
         return true;
       } catch (err) {
-        console.error("face-api model load failed:", err);
+        console.error("face-api detector model load failed:", err);
         return false;
       }
     })();
@@ -280,33 +308,96 @@
     return Promise.race([load, timeout]);
   }
 
-  async function isFaceVisible() {
-    if (!faceModelsLoaded) return true; // fail open — never block on detector issues
+  // estimates head yaw from landmark geometry: on a face looking straight
+  // at the camera, the nose tip sits roughly centered between the two eye
+  // centers. Turning the head toward notes/a second monitor pushes the
+  // nose off-center relative to inter-eye distance. This is a lightweight
+  // proxy for gaze — not true eye-tracking (face-api has no iris landmarks)
+  // — but is a solid signal for "are they engaging with the camera".
+  function estimateGaze(landmarks) {
+    const points = landmarks.positions;
+    if (!points || points.length < 48) return true; // unexpected shape — fail open
+
+    const avg = (pts) => ({
+      x: pts.reduce((sum, p) => sum + p.x, 0) / pts.length,
+      y: pts.reduce((sum, p) => sum + p.y, 0) / pts.length
+    });
+
+    const eyeA = avg(points.slice(36, 42)); // one eye cluster
+    const eyeB = avg(points.slice(42, 48)); // other eye cluster
+    const noseTip = points[30];
+
+    const eyeMidX = (eyeA.x + eyeB.x) / 2;
+    const interEyeDist = Math.hypot(eyeB.x - eyeA.x, eyeB.y - eyeA.y);
+    if (interEyeDist < 1) return true; // degenerate reading — fail open
+
+    const horizontalOffsetRatio = Math.abs(noseTip.x - eyeMidX) / interEyeDist;
+
+    // tolerates natural asymmetry and small movements while still catching
+    // a clear head turn — tuned empirically, adjust if it feels too strict/loose
+    const YAW_TOLERANCE = 0.28;
+    return horizontalOffsetRatio <= YAW_TOLERANCE;
+  }
+
+  // single source of truth for a face-detection read: returns both
+  // presence and (when landmarks are available) gaze in one detector pass
+  async function detectFaceState() {
+    if (!faceModelsLoaded) return { visible: true, lookingAtCamera: true }; // fail open — never block on detector issues
+
     try {
-      const result = await faceapi.detectSingleFace(
-        el.camPreview,
-        new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
-      );
-      return !!result;
+      const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+
+      if (landmarksLoaded) {
+        const result = await faceapi
+          .detectSingleFace(el.camPreview, detectorOptions)
+          .withFaceLandmarks(true); // true = use the tiny landmark model, matches the tiny detector
+
+        if (!result) return { visible: false, lookingAtCamera: false };
+        return { visible: true, lookingAtCamera: estimateGaze(result.landmarks) };
+      }
+
+      const result = await faceapi.detectSingleFace(el.camPreview, detectorOptions);
+      const visible = !!result;
+      return { visible, lookingAtCamera: visible }; // no landmarks — presence is the best available proxy
     } catch (err) {
-      return true; // fail open
+      return { visible: true, lookingAtCamera: true }; // fail open
     }
   }
 
-  function updateFaceBadge(visible) {
+  function updateFaceBadge(visible, lookingAtCamera) {
     if (!el.faceBadge) return;
-    el.faceBadge.textContent = visible ? "face: visible" : "face: not detected";
-    el.faceBadge.className = "face-badge " + (visible ? "ok" : "warn");
+    let label, cls;
+    if (!visible) {
+      label = "face: not detected";
+      cls = "warn";
+    } else if (!lookingAtCamera) {
+      label = "face: visible (look at camera)";
+      cls = "warn";
+    } else {
+      label = "face: visible";
+      cls = "ok";
+    }
+    el.faceBadge.textContent = label;
+    el.faceBadge.className = "face-badge " + cls;
   }
 
-  // polls until a face is seen — pauses the interview flow (not just a
-  // warning) and periodically reminds the person out loud until it can
-  // actually see them. Fails open if the model never loaded.
+  // pauses the interview flow (not just a warning) and periodically
+  // reminds the person out loud until a face is seen again. Debounces a
+  // single dropped frame before committing to the pause flow, and fails
+  // open if the model never loaded.
   async function ensureFaceVisibleBeforeSpeaking() {
     if (state.ended) return;
 
-    let visible = await isFaceVisible();
-    updateFaceBadge(visible);
+    let { visible, lookingAtCamera } = await detectFaceState();
+    updateFaceBadge(visible, lookingAtCamera);
+    if (visible) return;
+
+    // one dropped frame shouldn't interrupt the interview — re-check once
+    // more before trusting a "not visible" reading enough to pause and speak
+    await new Promise((r) => setTimeout(r, 400));
+    if (state.ended) return;
+    ({ visible, lookingAtCamera } = await detectFaceState());
+    updateFaceBadge(visible, lookingAtCamera);
     if (visible) return;
 
     appendLog("sys", "# face not visible — pausing until you're back in frame.");
@@ -319,8 +410,8 @@
     while (!visible) {
       if (state.ended) return; // interview was ended while we were waiting on the face
       await new Promise((r) => setTimeout(r, 1000));
-      visible = await isFaceVisible();
-      updateFaceBadge(visible);
+      ({ visible, lookingAtCamera } = await detectFaceState());
+      updateFaceBadge(visible, lookingAtCamera);
       secondsWaited++;
       if (!visible && secondsWaited % 12 === 0) {
         await speak("Still waiting — I need to see your face before we continue.");
@@ -336,13 +427,19 @@
   function startFaceMonitor() {
     stopFaceMonitor();
     faceMonitorRunning = true;
+    recentVisible = [];
+    recentLooking = [];
 
     const tick = async () => {
       if (!faceMonitorRunning) return;
-      const visible = await isFaceVisible();
+      const { visible, lookingAtCamera } = await detectFaceState();
       if (!faceMonitorRunning) return; // stopped while the detection call was in flight
-      updateFaceBadge(visible);
-      recordFaceSample(state.currentIndex, visible);
+
+      const smoothedVisible = pushSmoothed(recentVisible, visible);
+      const smoothedLooking = pushSmoothed(recentLooking, lookingAtCamera);
+
+      updateFaceBadge(smoothedVisible, smoothedLooking);
+      recordFaceSample(state.currentIndex, smoothedVisible, smoothedLooking);
       faceMonitorHandle = setTimeout(tick, 1200);
     };
 
@@ -720,7 +817,7 @@
     if (modelsOk) {
       startFaceMonitor(); // keeps the badge live throughout, gating happens per-question
     } else {
-      updateFaceBadge(true);
+      updateFaceBadge(true, true);
     }
 
     setStatus("live", "interview live");
@@ -784,7 +881,10 @@
   function buildFaceMetricsSummary() {
     return state.transcript.map((t, i) => {
       const stat = faceStats[i];
-      const eyeContactPercent = stat && stat.total > 0 ? Math.round((stat.visible / stat.total) * 100) : null;
+      // eye_contact_percent now reflects actual gaze (lookingCount) when the
+      // landmark model loaded, or falls back to presence when it didn't —
+      // detectFaceState() already handles that fallback per-sample
+      const eyeContactPercent = stat && stat.total > 0 ? Math.round((stat.lookingCount / stat.total) * 100) : null;
       return {
         question_index: i,
         eye_contact_percent: eyeContactPercent,
