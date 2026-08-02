@@ -1,7 +1,12 @@
 // ---------- interview.js ----------
 // Phase 1 scaffold: camera/mic, TTS questions, STT answers, transcript log,
-// fixed question bank, timer. Face-tracking now uses MediaPipe Face
-// Landmarker (real iris-based gaze) instead of face-api.js.
+// fixed question bank, timer. Face-tracking uses MediaPipe Face Landmarker
+// (real iris-based gaze) instead of face-api.js.
+//
+// Phase 2: candidate name capture at the start, plus mid-interview
+// engagement — occasional content-aware follow-up questions and light
+// small talk — so it feels more like a real interviewer and less like a
+// rapid-fire quiz.
 
 (() => {
   "use strict";
@@ -153,7 +158,9 @@
     recognition: null,
     listening: false,
     ended: false, // true once the interview has been ended (early or naturally) — guards the loop
-    reportRequested: false
+    reportRequested: false,
+    candidateName: null, // captured at the start of the interview, null if we couldn't parse it
+    lastEngagementIndex: -1 // guards against back-to-back follow-ups/small talk
   };
 
   // ---- DOM refs ----
@@ -210,6 +217,80 @@
 
   function stopTimer() {
     clearInterval(state.timerHandle);
+  }
+
+  function randomFrom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // ---- name handling ----
+  function capitalize(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }
+
+  // pulls just the name out of a spoken answer like "I'm Ayush",
+  // "my name is Ayush", "it's Ayush", or a bare "Ayush"
+  function extractName(rawAnswer) {
+    if (!rawAnswer) return null;
+    const text = rawAnswer.trim();
+    if (!text || text === "(no answer captured)") return null;
+
+    const patterns = [
+      /my name is\s+([a-zA-Z]+)/i,
+      /i(?:'m| am)\s+([a-zA-Z]+)/i,
+      /it'?s\s+([a-zA-Z]+)/i,
+      /this is\s+([a-zA-Z]+)/i,
+      /call me\s+([a-zA-Z]+)/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) return capitalize(match[1]);
+    }
+
+    // no pattern matched — if it's short (1-2 words), assume they just said their name
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length <= 2) return capitalize(words[0]);
+
+    return null; // couldn't confidently extract a name
+  }
+
+  // occasionally prefixes a phrase with the candidate's name, so it doesn't
+  // feel robotic/repetitive if used on every single line
+  function maybeWithName(phrase, chance = 0.35) {
+    if (!state.candidateName || Math.random() > chance) return phrase;
+    const lowerFirst = phrase.charAt(0).toLowerCase() + phrase.slice(1);
+    return `${state.candidateName}, ${lowerFirst}`;
+  }
+
+  // asks for the candidate's name, with one retry if we can't parse it
+  async function captureCandidateName() {
+    const openers = [
+      "Hey candidate, good to see you! What's your name?",
+      "Hi there! Before we start, could you tell me your name?"
+    ];
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      appendLog("ai", openers[attempt]);
+      await speak(openers[attempt]);
+      if (state.ended) return null;
+
+      const answer = await listenForAnswer();
+      if (state.ended) return null;
+      appendLog("user", answer);
+
+      const name = extractName(answer);
+      if (name) return name;
+
+      if (attempt === 0) {
+        const retry = "Sorry, I didn't quite catch that — could you say your name again?";
+        appendLog("ai", retry);
+        await speak(retry);
+        if (state.ended) return null;
+      }
+    }
+
+    return null; // give up gracefully, fall back to generic phrasing
   }
 
   // ---- camera / mic ----
@@ -722,12 +803,46 @@
     "Totally fine, take it easy — let's move to a different question."
   ];
 
+  // canned mid-interview small talk — topic-adjacent, no API needed, so it's
+  // instant and free. Not added to the graded transcript.
+  const SMALL_TALK_POOL = [
+    "So, quick break from the questions — how long have you been coding?",
+    "Just curious, do you work on this stuff full-time, or is it more of a side thing right now?",
+    "Out of curiosity, what first got you interested in programming?",
+    "Quick one — what's your go-to code editor or IDE?",
+    "So, any side projects you're working on outside of this?",
+    "Just wondering, do you prefer working solo or on a team?",
+    "Random question — what's the last thing you learned that you found genuinely interesting?"
+  ];
+
+  const SMALL_TALK_CLOSERS = [
+    "Nice, thanks for sharing that. Let's get back to it.",
+    "Cool, good to know. Alright, back to the questions.",
+    "Got it. Okay, let's continue.",
+    "Nice. Let's dive back in."
+  ];
+
+  // mid-interview engagement (follow-up question or small talk) tuning
+  const ENGAGEMENT_MIN_GAP = 2; // at least this many questions between engagement moments
+  const ENGAGEMENT_CHANCE = 0.5; // chance an eligible question gets a follow-up or small talk
+  const FOLLOWUP_VS_SMALLTALK_CHANCE = 0.6; // of engagements, this fraction are follow-ups (rest are small talk)
+
   function randomAck() {
     return ACK_PHRASES[Math.floor(Math.random() * ACK_PHRASES.length)];
   }
 
   function randomStuckResponse() {
     return STUCK_PHRASES[Math.floor(Math.random() * STUCK_PHRASES.length)];
+  }
+
+  // decides whether question `index` should get extra engagement, and if so,
+  // which kind. Never on the first or last question, never two in a row
+  // within ENGAGEMENT_MIN_GAP.
+  function decideEngagement(index) {
+    if (index <= 0 || index >= state.questions.length - 1) return null;
+    if (index - state.lastEngagementIndex < ENGAGEMENT_MIN_GAP) return null;
+    if (Math.random() > ENGAGEMENT_CHANCE) return null;
+    return Math.random() < FOLLOWUP_VS_SMALLTALK_CHANCE ? "followup" : "smalltalk";
   }
 
   // treats an empty, near-empty, or "I don't know"-style answer as the
@@ -754,8 +869,10 @@
 
   // asks the fast Groq endpoint for a content-aware one-liner reacting to
   // the actual answer — races against a short timeout so a slow/failed
-  // call NEVER holds up the interview; falls back to a canned line
-  async function getSmartAck(question, answer) {
+  // call NEVER holds up the interview; falls back to a canned line.
+  // When wantFollowUp is true, asks for a reaction PLUS a follow-up question
+  // instead of just a reaction.
+  async function getSmartAck(question, answer, wantFollowUp = false) {
     if (isStuckAnswer(answer)) return null; // handled separately by the stuck-response flow
 
     const fetchAck = (async () => {
@@ -763,7 +880,7 @@
         const res = await fetch("/api/interview-ack", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, answer })
+          body: JSON.stringify({ question, answer, wantFollowUp })
         });
         if (!res.ok) return null;
         const data = await res.json();
@@ -822,21 +939,78 @@
 
     state.transcript.push({ question: q, answer });
 
-    // human-like beat before moving on — a content-aware reaction if the
-    // fast AI call comes back in time, a canned one otherwise
-    const smartAck = await getSmartAck(q, answer);
+    const engagement = decideEngagement(index);
+
+    if (engagement === "followup") {
+      const followUpLine = await getSmartAck(q, answer, true);
+      if (state.ended) return;
+
+      if (followUpLine) {
+        state.lastEngagementIndex = index;
+        appendLog("ai", followUpLine);
+        await speak(followUpLine);
+        if (state.ended) return;
+
+        const followUpAnswer = await listenForAnswer();
+        if (state.ended) return;
+        appendLog("user", followUpAnswer);
+        state.transcript.push({ question: "(follow-up) " + followUpLine, answer: followUpAnswer });
+
+        const closer = maybeWithName(randomAck()) + " Let's move to the next question.";
+        appendLog("ai", closer);
+        await speak(closer);
+        if (state.ended) return;
+        return; // skip the normal transition below — already handled
+      }
+      // followUpLine came back null (timeout/error) — fall through to normal transition
+    }
+
+    if (engagement === "smalltalk") {
+      state.lastEngagementIndex = index;
+      const smallTalkLine = randomFrom(SMALL_TALK_POOL);
+      appendLog("ai", smallTalkLine);
+      await speak(smallTalkLine);
+      if (state.ended) return;
+
+      const smallTalkAnswer = await listenForAnswer();
+      if (state.ended) return;
+      appendLog("user", smallTalkAnswer);
+      // not added to transcript/report — this is rapport-building, not interview content
+
+      const closer = maybeWithName(randomFrom(SMALL_TALK_CLOSERS));
+      appendLog("ai", closer);
+      await speak(closer);
+      if (state.ended) return;
+      return; // skip the normal transition below — already handled
+    }
+
+    // no engagement this round — normal flow
+    const smartAck = await getSmartAck(q, answer, false);
     if (state.ended) return;
 
     const isLast = index === state.questions.length - 1;
-    const transition =
-      (smartAck || randomAck()) + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
+    const baseAck = smartAck || randomAck();
+    const transition = maybeWithName(baseAck) + (isLast ? " That wraps up our questions." : " Let's move to the next question.");
     appendLog("ai", transition);
     await speak(transition);
   }
 
   async function runInterview() {
+    await ensureFaceVisibleBeforeSpeaking();
+    if (state.ended) return;
+
+    state.candidateName = await captureCandidateName();
+    if (state.ended) return;
+
+    const ackLine = state.candidateName
+      ? `Okay, ${state.candidateName}. Let's continue the interview.`
+      : "Alright, let's continue the interview.";
+    appendLog("ai", ackLine);
+    await speak(ackLine);
+    if (state.ended) return;
+
     const greeting =
-      `Hi there! I'm your AI interviewer for today. We're going to go through ${state.questions.length} questions on ${state.topic}. ` +
+      `We're going to go through ${state.questions.length} questions on ${state.topic}. ` +
       `Just relax and answer naturally, like you would in a real conversation. Let's get started.`;
     appendLog("ai", greeting);
     await speak(greeting);
@@ -860,6 +1034,8 @@
     state.currentIndex = -1;
     state.reportRequested = false;
     state.ended = false;
+    state.candidateName = null;
+    state.lastEngagementIndex = -1;
 
     el.startBtn.disabled = true;
     const ok = await requestMedia();
@@ -917,6 +1093,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: state.topic,
+          candidateName: state.candidateName,
           transcript: state.transcript,
           faceMetrics: buildFaceMetricsSummary()
         })
