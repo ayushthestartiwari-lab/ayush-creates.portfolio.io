@@ -281,29 +281,50 @@
     faceStats[index].lookAwayEvents++;
   }
 
+  // generous timeout — the WASM binary + the .task model file together can
+  // be several MB, and a cold load (especially on mobile/slower connections)
+  // can genuinely take longer than a few seconds. Too short a timeout here
+  // silently disables face tracking for the whole session even when the
+  // model was about to succeed.
+  const FACE_MODEL_LOAD_TIMEOUT_MS = 20000;
+
   async function ensureFaceModelsLoaded() {
     if (faceModelsLoaded) return true;
 
-    // whichever finishes first — never let a slow/blocked CDN hang the interview
-    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 8000));
+    console.log("[face] starting MediaPipe load...");
+    const loadStartedAt = performance.now();
+
+    const timeout = new Promise((resolve) =>
+      setTimeout(() => {
+        console.error(
+          `[face] load TIMED OUT after ${FACE_MODEL_LOAD_TIMEOUT_MS}ms — face tracking disabled for this session`
+        );
+        resolve(false);
+      }, FACE_MODEL_LOAD_TIMEOUT_MS)
+    );
 
     const load = (async () => {
+      console.log("[face] importing @mediapipe/tasks-vision module...");
       const vision = await import(
         `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}`
       ).catch((err) => {
-        console.error("MediaPipe module load failed:", err);
+        console.error("[face] module import FAILED (CDN blocked/unreachable?):", err);
         return null;
       });
       if (!vision) return false;
+      console.log("[face] module imported ok");
 
       const { FaceLandmarker, FilesetResolver } = vision;
 
       try {
+        console.log("[face] loading WASM fileset from", WASM_URL);
         const filesetResolver = await FilesetResolver.forVisionTasks(WASM_URL);
+        console.log("[face] WASM fileset loaded ok");
 
         // try GPU delegate first (faster), fall back to CPU on devices/
         // browsers where WebGL delegate init fails
         try {
+          console.log("[face] creating FaceLandmarker with GPU delegate...");
           faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
             baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
             runningMode: "VIDEO",
@@ -311,8 +332,9 @@
             outputFaceBlendshapes: false,
             outputFacialTransformationMatrixes: false
           });
+          console.log("[face] GPU delegate ok");
         } catch (gpuErr) {
-          console.warn("GPU delegate failed, falling back to CPU:", gpuErr);
+          console.warn("[face] GPU delegate failed, falling back to CPU:", gpuErr);
           faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
             baseOptions: { modelAssetPath: MODEL_URL, delegate: "CPU" },
             runningMode: "VIDEO",
@@ -320,17 +342,27 @@
             outputFaceBlendshapes: false,
             outputFacialTransformationMatrixes: false
           });
+          console.log("[face] CPU delegate ok");
         }
 
         faceModelsLoaded = true;
+        const elapsedMs = Math.round(performance.now() - loadStartedAt);
+        console.log(`[face] MediaPipe FaceLandmarker ready in ${elapsedMs}ms`);
         return true;
       } catch (err) {
-        console.error("MediaPipe FaceLandmarker load failed:", err);
+        console.error("[face] FaceLandmarker creation FAILED (both GPU and CPU delegates):", err);
         return false;
       }
     })();
 
-    return Promise.race([load, timeout]);
+    const result = await Promise.race([load, timeout]);
+    if (!result && faceModelsLoaded) {
+      // load actually finished successfully after the timeout already
+      // resolved false — rare, but don't leave the caller thinking it failed
+      console.warn("[face] load finished after timeout fired, but model is usable — treating as loaded");
+      return true;
+    }
+    return result;
   }
 
   // MediaPipe's face mesh includes real iris landmarks (indices 468-477),
@@ -839,8 +871,10 @@
 
     const modelsOk = await ensureFaceModelsLoaded();
     if (modelsOk) {
+      console.log("[face] models ready — starting face monitor");
       startFaceMonitor(); // keeps the badge live throughout, gating happens per-question
     } else {
+      console.warn("[face] models NOT ready — face tracking skipped for this session, badge fixed to 'visible'");
       updateFaceBadge(true, true);
     }
 
