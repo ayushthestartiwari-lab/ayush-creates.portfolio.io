@@ -1,7 +1,7 @@
 // ---------- interview.js ----------
 // Phase 1 scaffold: camera/mic, TTS questions, STT answers, transcript log,
-// fixed question bank, timer. Face-tracking metrics + Gemini report are
-// wired in Phase 2/3 — see TODOs below.
+// fixed question bank, timer. Face-tracking now uses MediaPipe Face
+// Landmarker (real iris-based gaze) instead of face-api.js.
 
 (() => {
   "use strict";
@@ -236,14 +236,19 @@
     }
   }
 
-  // ---- face tracking: presence + gaze ----
+  // ---- face tracking: presence + gaze (MediaPipe Face Landmarker) ----
   // Presence ("visible") gates pausing the interview — it's about whether
   // they're physically in frame. Gaze ("lookingAtCamera") is a lighter-touch
   // signal used only for the eye-contact stat in the report — glancing at
   // notes shouldn't pause anything, it should just show up as lower % later.
 
-  let faceModelsLoaded = false; // detector ready (presence detection works)
-  let landmarksLoaded = false; // landmark model ready (real gaze detection works)
+  const MEDIAPIPE_VERSION = "0.10.14";
+  const WASM_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
+  const MODEL_URL =
+    "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+
+  let faceLandmarker = null; // MediaPipe FaceLandmarker instance once loaded
+  let faceModelsLoaded = false;
   let faceMonitorHandle = null;
   let faceMonitorRunning = false; // guards against overlapping detector calls if one is slow
 
@@ -278,87 +283,106 @@
 
   async function ensureFaceModelsLoaded() {
     if (faceModelsLoaded) return true;
-    if (typeof faceapi === "undefined") return false; // CDN blocked/failed
 
-    const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js/weights";
-    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 4000));
+    // whichever finishes first — never let a slow/blocked CDN hang the interview
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 8000));
 
     const load = (async () => {
-      try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        faceModelsLoaded = true;
+      const vision = await import(
+        `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}`
+      ).catch((err) => {
+        console.error("MediaPipe module load failed:", err);
+        return null;
+      });
+      if (!vision) return false;
 
-        // landmarks are what make real gaze detection possible — load them
-        // separately so a failure here still leaves presence detection working
+      const { FaceLandmarker, FilesetResolver } = vision;
+
+      try {
+        const filesetResolver = await FilesetResolver.forVisionTasks(WASM_URL);
+
+        // try GPU delegate first (faster), fall back to CPU on devices/
+        // browsers where WebGL delegate init fails
         try {
-          await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
-          landmarksLoaded = true;
-        } catch (err) {
-          console.error("face landmark model load failed — falling back to presence-only detection:", err);
+          faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+            baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
+            runningMode: "VIDEO",
+            numFaces: 1,
+            outputFaceBlendshapes: false,
+            outputFacialTransformationMatrixes: false
+          });
+        } catch (gpuErr) {
+          console.warn("GPU delegate failed, falling back to CPU:", gpuErr);
+          faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+            baseOptions: { modelAssetPath: MODEL_URL, delegate: "CPU" },
+            runningMode: "VIDEO",
+            numFaces: 1,
+            outputFaceBlendshapes: false,
+            outputFacialTransformationMatrixes: false
+          });
         }
 
+        faceModelsLoaded = true;
         return true;
       } catch (err) {
-        console.error("face-api detector model load failed:", err);
+        console.error("MediaPipe FaceLandmarker load failed:", err);
         return false;
       }
     })();
 
-    // whichever finishes first — never let a slow/blocked CDN hang the interview
     return Promise.race([load, timeout]);
   }
 
-  // estimates head yaw from landmark geometry: on a face looking straight
-  // at the camera, the nose tip sits roughly centered between the two eye
-  // centers. Turning the head toward notes/a second monitor pushes the
-  // nose off-center relative to inter-eye distance. This is a lightweight
-  // proxy for gaze — not true eye-tracking (face-api has no iris landmarks)
-  // — but is a solid signal for "are they engaging with the camera".
+  // MediaPipe's face mesh includes real iris landmarks (indices 468-477),
+  // so gaze is estimated from where the iris sits within the eye socket
+  // rather than head yaw — more accurate than a nose-offset proxy, and
+  // catches "eyes flicking to notes" even when the head barely moves.
+  const LEFT_EYE_CORNERS = [33, 133];
+  const RIGHT_EYE_CORNERS = [362, 263];
+  const LEFT_IRIS_CENTER = 468;
+  const RIGHT_IRIS_CENTER = 473;
+
+  function irisRatioForEye(landmarks, cornerIdxA, cornerIdxB, irisIdx) {
+    const a = landmarks[cornerIdxA];
+    const b = landmarks[cornerIdxB];
+    const iris = landmarks[irisIdx];
+    if (!a || !b || !iris) return null;
+
+    const minX = Math.min(a.x, b.x);
+    const maxX = Math.max(a.x, b.x);
+    const span = maxX - minX;
+    if (span < 0.001) return null; // eye too small/occluded to read
+
+    // 0 = iris at outer corner, 1 = iris at inner corner, 0.5 = centered
+    return (iris.x - minX) / span;
+  }
+
   function estimateGaze(landmarks) {
-    const points = landmarks.positions;
-    if (!points || points.length < 48) return true; // unexpected shape — fail open
+    const leftRatio = irisRatioForEye(landmarks, LEFT_EYE_CORNERS[0], LEFT_EYE_CORNERS[1], LEFT_IRIS_CENTER);
+    const rightRatio = irisRatioForEye(landmarks, RIGHT_EYE_CORNERS[0], RIGHT_EYE_CORNERS[1], RIGHT_IRIS_CENTER);
 
-    const avg = (pts) => ({
-      x: pts.reduce((sum, p) => sum + p.x, 0) / pts.length,
-      y: pts.reduce((sum, p) => sum + p.y, 0) / pts.length
-    });
+    const ratios = [leftRatio, rightRatio].filter((r) => r !== null);
+    if (!ratios.length) return true; // couldn't read either eye — fail open
 
-    const eyeA = avg(points.slice(36, 42)); // one eye cluster
-    const eyeB = avg(points.slice(42, 48)); // other eye cluster
-    const noseTip = points[30];
+    const avgRatio = ratios.reduce((sum, r) => sum + r, 0) / ratios.length;
 
-    const eyeMidX = (eyeA.x + eyeB.x) / 2;
-    const interEyeDist = Math.hypot(eyeB.x - eyeA.x, eyeB.y - eyeA.y);
-    if (interEyeDist < 1) return true; // degenerate reading — fail open
-
-    const horizontalOffsetRatio = Math.abs(noseTip.x - eyeMidX) / interEyeDist;
-
-    // tolerates natural asymmetry and small movements while still catching
-    // a clear head turn — tuned empirically, adjust if it feels too strict/loose
-    const YAW_TOLERANCE = 0.28;
-    return horizontalOffsetRatio <= YAW_TOLERANCE;
+    // tolerance around center (0.5) — tuned empirically, adjust if too
+    // strict/loose
+    const GAZE_TOLERANCE = 0.18;
+    return Math.abs(avgRatio - 0.5) <= GAZE_TOLERANCE;
   }
 
   // single source of truth for a face-detection read: returns both
-  // presence and (when landmarks are available) gaze in one detector pass
+  // presence and gaze in one detector pass
   async function detectFaceState() {
-    if (!faceModelsLoaded) return { visible: true, lookingAtCamera: true }; // fail open — never block on detector issues
+    if (!faceModelsLoaded || !faceLandmarker) return { visible: true, lookingAtCamera: true }; // fail open — never block on detector issues
 
     try {
-      const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+      const result = faceLandmarker.detectForVideo(el.camPreview, performance.now());
+      const landmarks = result.faceLandmarks && result.faceLandmarks[0];
 
-      if (landmarksLoaded) {
-        const result = await faceapi
-          .detectSingleFace(el.camPreview, detectorOptions)
-          .withFaceLandmarks(true); // true = use the tiny landmark model, matches the tiny detector
-
-        if (!result) return { visible: false, lookingAtCamera: false };
-        return { visible: true, lookingAtCamera: estimateGaze(result.landmarks) };
-      }
-
-      const result = await faceapi.detectSingleFace(el.camPreview, detectorOptions);
-      const visible = !!result;
-      return { visible, lookingAtCamera: visible }; // no landmarks — presence is the best available proxy
+      if (!landmarks) return { visible: false, lookingAtCamera: false };
+      return { visible: true, lookingAtCamera: estimateGaze(landmarks) };
     } catch (err) {
       return { visible: true, lookingAtCamera: true }; // fail open
     }
@@ -881,9 +905,7 @@
   function buildFaceMetricsSummary() {
     return state.transcript.map((t, i) => {
       const stat = faceStats[i];
-      // eye_contact_percent now reflects actual gaze (lookingCount) when the
-      // landmark model loaded, or falls back to presence when it didn't —
-      // detectFaceState() already handles that fallback per-sample
+      // eye_contact_percent reflects real iris-based gaze (lookingCount)
       const eyeContactPercent = stat && stat.total > 0 ? Math.round((stat.lookingCount / stat.total) * 100) : null;
       return {
         question_index: i,
