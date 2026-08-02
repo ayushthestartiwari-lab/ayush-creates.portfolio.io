@@ -77,7 +77,9 @@ module.exports = async function handler(req, res) {
       `and answered: "${safeAnswer}". ` +
       `Reply with ONE short, natural, conversational sentence reacting specifically to what they said — ` +
       `like a real interviewer would (e.g. referencing a detail they mentioned, or gently noting if it was vague). ` +
-      `Do not ask a new question. Do not use markdown. Keep it under 20 words. Reply with just the sentence, nothing else.`;
+      `This is a closing remark, NOT a follow-up round — the candidate will NOT get a chance to respond, so this ` +
+      `sentence must be a statement only. Do not ask a question. Do not use a question mark anywhere. ` +
+      `Do not use markdown. Keep it under 20 words. Reply with just the sentence, nothing else.`;
 
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -113,6 +115,24 @@ module.exports = async function handler(req, res) {
 
     const maxWords = isFollowUp ? MAX_FOLLOWUP_WORDS : MAX_ACK_WORDS;
     const ack = capWords(text.replace(/^["']|["']$/g, ""), maxWords);
+
+    // safety net: a plain ack is spoken and then the interview moves straight
+    // to the next question — the frontend never listens for a reply to it.
+    // If the model snuck a question in anyway (despite the prompt), using it
+    // would mean asking the candidate something and walking away before they
+    // can answer. Reject it here so the frontend falls back to a canned line
+    // instead, which is guaranteed question-free.
+    if (!isFollowUp && ack.includes("?")) {
+      res.status(502).json({ error: "ack_contained_question" });
+      return;
+    }
+
+    // a follow-up with no question mark isn't actually a follow-up — same
+    // problem in reverse, the frontend will listen for an answer to nothing
+    if (isFollowUp && !ack.includes("?")) {
+      res.status(502).json({ error: "followup_missing_question" });
+      return;
+    }
 
     // only consume quota once we actually have a usable ack to send back
     await incrementQuota(visitorId);
