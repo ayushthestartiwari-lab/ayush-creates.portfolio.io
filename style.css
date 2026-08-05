@@ -2880,3 +2880,104 @@ footer hr {
 
 }
 ```
+```css
+/* =========================================================
+   SCROLL-REACTIVE AURORA BACKGROUND
+   ========================================================= */
+
+.aurora-bg {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Individual background blobs */
+.aurora-bg > span {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Planet reacts to scrolling */
+.aurora-planet {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+
+/* =========================================================
+   3D LANGUAGE CARD TILT
+   ========================================================= */
+
+.language-card {
+  transform-style: preserve-3d;
+  perspective: 900px;
+  will-change: transform;
+}
+
+/*
+   Keep the logo and text visually above the glass surface
+   while the card tilts.
+*/
+
+.language-card .lang-logo,
+.language-card .lang-info {
+  transform: translateZ(18px);
+}
+
+.language-card::after {
+  transform: translateZ(18px);
+}
+
+
+/* =========================================================
+   SMOOTH PERFORMANCE
+   ========================================================= */
+
+.aurora-bg,
+.aurora-bg > span,
+.aurora-planet,
+.language-card {
+  backface-visibility: hidden;
+}
+
+
+/* =========================================================
+   MOBILE
+   Disable cursor-based 3D tilt where there is no mouse.
+   The scrolling background still works.
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  .language-card {
+    transform-style: flat;
+  }
+
+  .language-card .lang-logo,
+  .language-card .lang-info {
+    transform: none;
+  }
+
+  .language-card::after {
+    transform: none;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .aurora-bg,
+  .aurora-bg > span,
+  .aurora-planet,
+  .language-card {
+    animation: none !important;
+    transition: none !important;
+  }
+
+}
+```
+
