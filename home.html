@@ -126,6 +126,53 @@
       box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
     }
 
+    /* =========================================
+       LANGUAGE CARD LOGOS
+       ========================================= */
+
+    .lang-logo {
+      width: 58px;
+      height: 58px;
+      min-width: 58px;
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      margin-right: 18px;
+
+      background: rgba(255, 255, 255, 0.08);
+
+      border: 1px solid var(--card-accent);
+
+      box-shadow:
+        0 0 15px var(--card-glow),
+        inset 0 0 12px rgba(255, 255, 255, 0.04);
+
+      position: relative;
+      z-index: 2;
+
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+    }
+
+    .lang-logo img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .language-card:hover .lang-logo {
+      transform: scale(1.08);
+
+      box-shadow:
+        0 0 25px var(--card-glow),
+        inset 0 0 12px rgba(255, 255, 255, 0.08);
+    }
+
   </style>
 
 </head>
@@ -194,7 +241,16 @@
 
     <div class="card-grid">
 
+      <!-- Python -->
       <a href="python.html" class="language-card python">
+
+        <div class="lang-logo">
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
+            alt="Python logo"
+          >
+        </div>
+
         <div class="lang-info">
           <h3>Python</h3>
           <p>
@@ -204,10 +260,20 @@
             </span>
           </p>
         </div>
+
       </a>
 
 
+      <!-- JavaScript -->
       <a href="javascript.html" class="language-card javascript">
+
+        <div class="lang-logo">
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
+            alt="JavaScript logo"
+          >
+        </div>
+
         <div class="lang-info">
           <h3>JavaScript</h3>
           <p>
@@ -217,10 +283,20 @@
             </span>
           </p>
         </div>
+
       </a>
 
 
+      <!-- Java -->
       <a href="java.html" class="language-card java">
+
+        <div class="lang-logo">
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
+            alt="Java logo"
+          >
+        </div>
+
         <div class="lang-info">
           <h3>Java</h3>
           <p>
@@ -230,10 +306,20 @@
             </span>
           </p>
         </div>
+
       </a>
 
 
+      <!-- Go -->
       <a href="go.html" class="language-card go">
+
+        <div class="lang-logo">
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg"
+            alt="Go logo"
+          >
+        </div>
+
         <div class="lang-info">
           <h3>Go</h3>
           <p>
@@ -243,10 +329,20 @@
             </span>
           </p>
         </div>
+
       </a>
 
 
+      <!-- HTML -->
       <a href="html.html" class="language-card html">
+
+        <div class="lang-logo">
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
+            alt="HTML logo"
+          >
+        </div>
+
         <div class="lang-info">
           <h3>HTML</h3>
           <p>
@@ -256,10 +352,20 @@
             </span>
           </p>
         </div>
+
       </a>
 
 
+      <!-- Rust -->
       <a href="rust.html" class="language-card rust">
+
+        <div class="lang-logo">
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-plain.svg"
+            alt="Rust logo"
+          >
+        </div>
+
         <div class="lang-info">
           <h3>Rust</h3>
           <p>
@@ -269,6 +375,7 @@
             </span>
           </p>
         </div>
+
       </a>
 
     </div>
