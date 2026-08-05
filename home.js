@@ -1,186 +1,23 @@
 ```javascript
 // ============================================================
-// home.js — Be Ahead Homepage
+// home.js — Be Ahead Homepage Interactivity
 // ============================================================
 // Includes:
-// 1. Vanta.js animated background
-// 2. Smooth scroll-based background movement
-// 3. Fluid language-card tilt
-// 4. Smooth in-page anchor scrolling
-// 5. Safe fallbacks
+// 1. Smooth 3D cursor-following tilt for language cards
+// 2. Scroll-reactive animated background / parallax
+// 3. Smooth in-page anchor scrolling
 // ============================================================
-
 
 document.addEventListener("DOMContentLoaded", () => {
 
   // ==========================================================
-  // VANTA.JS LIVE BACKGROUND
+  // LANGUAGE CARD 3D TILT
   // ==========================================================
 
-  let vantaEffect = null;
-
-  const vantaElement = document.getElementById("vanta-bg");
-
-  const prefersReducedMotion =
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-
-  function initializeVanta() {
-
-    if (!vantaElement) {
-      return;
-    }
-
-    if (prefersReducedMotion) {
-      vantaElement.classList.add("reduced-motion");
-      return;
-    }
-
-    // Make sure Vanta and THREE have loaded.
-    if (
-      typeof VANTA === "undefined" ||
-      typeof THREE === "undefined" ||
-      typeof VANTA.FOG !== "function"
-    ) {
-
-      vantaElement.classList.add("vanta-fallback");
-
-      return;
-    }
-
-
-    try {
-
-      vantaEffect = VANTA.FOG({
-
-        el: vantaElement,
-
-        THREE: THREE,
-
-        mouseControls: true,
-        touchControls: true,
-
-        gyroControls: false,
-
-        minHeight: 200,
-        minWidth: 200,
-
-        highlightColor: 0x7c3aed,
-        midtoneColor: 0x6d28d9,
-        lowlightColor: 0x170a30,
-
-        baseColor: 0x170a30,
-
-        blurFactor: 0.55,
-
-        speed: 0.75,
-
-        zoom: 0.85
-
-      });
-
-    } catch (error) {
-
-      console.warn(
-        "Be Ahead: Vanta background could not initialize.",
-        error
-      );
-
-      vantaElement.classList.add("vanta-fallback");
-
-    }
-
-  }
-
-
-  // Vanta loads before this file, but this tiny delay gives
-  // the browser enough time to finish creating THREE/VANTA.
-  window.setTimeout(initializeVanta, 50);
-
-
-  // ==========================================================
-  // SCROLL-BASED BACKGROUND MOVEMENT
-  // ==========================================================
-
-  let scrollY = 0;
-  let targetScrollY = 0;
-
-  let scrollAnimationFrame = null;
-
-
-  function updateScrollPosition() {
-
-    targetScrollY = window.scrollY || window.pageYOffset || 0;
-
-    if (!scrollAnimationFrame) {
-
-      scrollAnimationFrame =
-        requestAnimationFrame(applyScrollMovement);
-
-    }
-
-  }
-
-
-  function applyScrollMovement() {
-
-    const difference = targetScrollY - scrollY;
-
-    scrollY += difference * 0.08;
-
-
-    document.documentElement.style.setProperty(
-      "--scroll-y",
-      `${scrollY}px`
-    );
-
-
-    const vanta = document.getElementById("vanta-bg");
-
-    if (vanta && !prefersReducedMotion) {
-
-      const movement =
-        Math.min(scrollY * 0.035, 80);
-
-      vanta.style.transform =
-        `translate3d(0, ${movement}px, 0)`;
-
-    }
-
-
-    if (Math.abs(difference) > 0.1) {
-
-      scrollAnimationFrame =
-        requestAnimationFrame(applyScrollMovement);
-
-    } else {
-
-      scrollAnimationFrame = null;
-
-    }
-
-  }
-
-
-  window.addEventListener(
-    "scroll",
-    updateScrollPosition,
-    {
-      passive: true
-    }
-  );
-
-
-  // ==========================================================
-  // FLUID LANGUAGE CARD TILT
-  // ==========================================================
-
-  const cards =
-    document.querySelectorAll(".language-card");
+  const cards = document.querySelectorAll(".language-card");
 
   const LERP_SPEED = 0.12;
-
+  const MAX_TILT = 9;
 
   cards.forEach((card) => {
 
@@ -191,27 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentY = 0;
 
     let hovering = false;
+    let animationFrame = null;
 
-    let raf = null;
+    function animateCard() {
 
+      currentX += (targetX - currentX) * LERP_SPEED;
+      currentY += (targetY - currentY) * LERP_SPEED;
 
-    const tick = () => {
-
-      currentX +=
-        (targetX - currentX) *
-        LERP_SPEED;
-
-      currentY +=
-        (targetY - currentY) *
-        LERP_SPEED;
-
-
-      const scale =
-        hovering ? 1.025 : 1;
-
-      const lift =
-        hovering ? -7 : 0;
-
+      const scale = hovering ? 1.035 : 1;
+      const lift = hovering ? -6 : 0;
 
       card.style.transform = `
         perspective(900px)
@@ -221,215 +46,226 @@ document.addEventListener("DOMContentLoaded", () => {
         scale(${scale})
       `;
 
-
-      if (
+      const stillMoving =
         Math.abs(targetX - currentX) > 0.01 ||
         Math.abs(targetY - currentY) > 0.01 ||
-        hovering
-      ) {
+        hovering;
 
-        raf =
-          requestAnimationFrame(tick);
-
+      if (stillMoving) {
+        animationFrame = requestAnimationFrame(animateCard);
       } else {
-
         card.style.transform = "";
-
-        raf = null;
-
+        animationFrame = null;
       }
+    }
 
-    };
-
-
-    const startLoop = () => {
-
-      if (!raf) {
-
-        raf =
-          requestAnimationFrame(tick);
-
+    function startAnimation() {
+      if (!animationFrame) {
+        animationFrame = requestAnimationFrame(animateCard);
       }
+    }
 
-    };
+    card.addEventListener("mouseenter", () => {
+      hovering = true;
+      startAnimation();
+    });
 
+    card.addEventListener("mousemove", (event) => {
 
-    card.addEventListener(
-      "mousemove",
-      (event) => {
+      const rect = card.getBoundingClientRect();
 
-        if (window.innerWidth <= 700) {
-          return;
-        }
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
 
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
 
-        hovering = true;
+      targetX =
+        ((x - centerX) / centerX) * MAX_TILT;
 
+      targetY =
+        ((y - centerY) / centerY) * -MAX_TILT;
 
-        const rect =
-          card.getBoundingClientRect();
+      startAnimation();
+    });
 
+    card.addEventListener("mouseleave", () => {
 
-        const x =
-          event.clientX -
-          rect.left;
+      hovering = false;
 
+      targetX = 0;
+      targetY = 0;
 
-        const y =
-          event.clientY -
-          rect.top;
-
-
-        const centerX =
-          rect.width / 2;
-
-
-        const centerY =
-          rect.height / 2;
-
-
-        targetX =
-          ((x - centerX) /
-            centerX) * 7;
-
-
-        targetY =
-          ((y - centerY) /
-            centerY) * -7;
-
-
-        startLoop();
-
-      }
-    );
-
-
-    card.addEventListener(
-      "mouseleave",
-      () => {
-
-        hovering = false;
-
-        targetX = 0;
-        targetY = 0;
-
-        startLoop();
-
-      }
-    );
-
-
-    card.addEventListener(
-      "touchstart",
-      () => {
-
-        hovering = false;
-
-        targetX = 0;
-        targetY = 0;
-
-      },
-      {
-        passive: true
-      }
-    );
+      startAnimation();
+    });
 
   });
 
 
   // ==========================================================
-  // SMOOTH IN-PAGE ANCHOR SCROLLING
+  // SCROLL-REACTIVE BACKGROUND
+  // ==========================================================
+
+  const aurora = document.querySelector(".aurora-bg");
+
+  if (aurora) {
+
+    let currentScroll = 0;
+    let targetScroll = 0;
+
+    let backgroundFrame = null;
+
+    function animateBackground() {
+
+      currentScroll +=
+        (targetScroll - currentScroll) * 0.08;
+
+      // Move the complete aurora layer very slightly.
+      aurora.style.transform = `
+        translate3d(
+          0,
+          ${currentScroll * -0.045}px,
+          0
+        )
+      `;
+
+      backgroundFrame =
+        requestAnimationFrame(animateBackground);
+    }
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        targetScroll = window.scrollY;
+      },
+      { passive: true }
+    );
+
+    animateBackground();
+  }
+
+
+  // ==========================================================
+  // INDIVIDUAL AURORA ELEMENT PARALLAX
+  // ==========================================================
+
+  const auroraSpans =
+    document.querySelectorAll(".aurora-bg > span");
+
+  const planet =
+    document.querySelector(".aurora-planet");
+
+  let scrollPosition = 0;
+  let targetPosition = 0;
+
+  let parallaxFrame = null;
+
+  function animateParallax() {
+
+    scrollPosition +=
+      (targetPosition - scrollPosition) * 0.07;
+
+    auroraSpans.forEach((blob, index) => {
+
+      const speeds = [
+        0.035,
+        -0.025,
+        0.02
+      ];
+
+      const speed = speeds[index] || 0.02;
+
+      const x =
+        Math.sin(scrollPosition * 0.002 + index) *
+        18;
+
+      const y =
+        scrollPosition * speed;
+
+      blob.style.transform =
+        `translate3d(${x}px, ${y}px, 0)`;
+    });
+
+
+    if (planet) {
+
+      const planetY =
+        scrollPosition * -0.06;
+
+      const planetX =
+        Math.sin(scrollPosition * 0.0015) * 15;
+
+      planet.style.transform =
+        `translate3d(${planetX}px, ${planetY}px, 0)`;
+    }
+
+    parallaxFrame =
+      requestAnimationFrame(animateParallax);
+  }
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      targetPosition = window.scrollY;
+    },
+    { passive: true }
+  );
+
+  animateParallax();
+
+
+  // ==========================================================
+  // SMOOTH IN-PAGE SCROLL
   // ==========================================================
 
   document
     .querySelectorAll('a[href^="#"]')
     .forEach((link) => {
 
-      link.addEventListener(
-        "click",
-        (event) => {
+      link.addEventListener("click", (event) => {
 
-          const selector =
-            link.getAttribute("href");
+        const selector =
+          link.getAttribute("href");
 
+        if (!selector || selector === "#") {
+          return;
+        }
 
-          if (!selector || selector === "#") {
-            return;
-          }
+        const target =
+          document.querySelector(selector);
 
+        if (target) {
 
-          const target =
-            document.querySelector(selector);
+          event.preventDefault();
 
-
-          if (target) {
-
-            event.preventDefault();
-
-
-            target.scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
-
-          }
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
 
         }
-      );
+
+      });
 
     });
 
 
   // ==========================================================
-  // KEYBOARD ACCESS FOR BE AI BUTTON
+  // REDUCED MOTION ACCESSIBILITY
   // ==========================================================
 
-  const beAiButton =
-    document.getElementById("beai-chatbot");
-
-
-  if (beAiButton) {
-
-    beAiButton.addEventListener(
-      "keydown",
-      (event) => {
-
-        if (
-          event.key === "Enter" ||
-          event.key === " "
-        ) {
-
-          event.preventDefault();
-
-          beAiButton.click();
-
-        }
-
-      }
+  const prefersReducedMotion =
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
     );
 
+  if (prefersReducedMotion.matches) {
+
+    cards.forEach((card) => {
+      card.style.transform = "";
+    });
+
   }
-
-
-  // ==========================================================
-  // CLEANUP VANTA WHEN PAGE IS LEFT
-  // ==========================================================
-
-  window.addEventListener(
-    "beforeunload",
-    () => {
-
-      if (
-        vantaEffect &&
-        typeof vantaEffect.destroy === "function"
-      ) {
-
-        vantaEffect.destroy();
-
-      }
-
-    }
-  );
 
 });
 ```
