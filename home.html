@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +31,7 @@
   <meta name="author" content="Ayush Tiwary">
   <meta name="robots" content="index, follow">
 
-  <!-- Open Graph / Social Sharing -->
+  <!-- Open Graph -->
   <meta property="og:title" content="Be Ahead — Learn, Build & Practice Programming">
 
   <meta
@@ -45,334 +46,335 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-  <!-- CSS -->
+  <!-- Main CSS -->
   <link rel="stylesheet" href="style.css">
-
-  <style>
-
-    /* Simple nav link styling */
-    nav {
-      margin-top: 10px;
-      text-align: right;
-    }
-
-    nav a {
-      color: #2a5298;
-      text-decoration: none;
-      margin: 0 10px;
-      font-weight: bold;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
-
-    /* Nudge BeAI up on this page only, so Arena can sit below it */
-    #beai-chatbot {
-      bottom: 88px;
-    }
-
-    /* Floating "Be Ahead Arena" button — compact, sits right under BeAI */
-    #arena-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 64px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #7c3aed, #d94f9c);
-      color: #fff;
-      border-radius: 50%;
-      text-decoration: none;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.68em;
-      line-height: 1.15;
-      letter-spacing: 0.1px;
-      box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
-      z-index: 9998;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    #arena-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
-    }
-
-    /* Floating "Bug Hunter" button — rectangular, top-right */
-    #bughunter-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #7c3aed, #d94f9c);
-      color: #fff;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.9em;
-      box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
-      z-index: 9998;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    #bughunter-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
-    }
-
-    /* =========================================
-       LANGUAGE CARD LOGOS
-       ========================================= */
-
-    .lang-logo {
-      width: 58px;
-      height: 58px;
-      min-width: 58px;
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      margin-right: 18px;
-
-      background: rgba(255, 255, 255, 0.08);
-
-      border: 1px solid var(--card-accent);
-
-      box-shadow:
-        0 0 15px var(--card-glow),
-        inset 0 0 12px rgba(255, 255, 255, 0.04);
-
-      position: relative;
-      z-index: 2;
-
-      transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease;
-    }
-
-    .lang-logo img {
-      width: 34px;
-      height: 34px;
-      object-fit: contain;
-      display: block;
-    }
-
-    .language-card:hover .lang-logo {
-      transform: scale(1.08);
-
-      box-shadow:
-        0 0 25px var(--card-glow),
-        inset 0 0 12px rgba(255, 255, 255, 0.08);
-    }
-
-  </style>
 
 </head>
 
 <body>
 
-  <!-- Aurora Background -->
-  <div class="aurora-bg">
-    <span></span>
-    <span></span>
-    <span></span>
-    <div class="aurora-planet"></div>
-  </div>
+  <!-- =====================================================
+       LIVE VANTA BACKGROUND
+       ===================================================== -->
 
-  <!-- Header -->
+  <div id="vanta-bg" aria-hidden="true"></div>
+
+  <!-- Extra dark overlay for readability -->
+  <div class="vanta-overlay" aria-hidden="true"></div>
+
+  <!-- Subtle animated stars -->
+  <div class="star-layer" aria-hidden="true"></div>
+
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
   <header>
 
-    <img src="logo.jpg" alt="Be Ahead Logo" class="logo-overlay">
+    <img
+      src="logo.jpg"
+      alt="Be Ahead Logo"
+      class="logo-overlay"
+    >
 
-    <h1 class="site-title">Be Ahead.</h1>
+    <h1 class="site-title">
+      Be Ahead.
+    </h1>
 
     <nav>
-      <a href="index.html">Sign In / Sign Up</a>
+      <a href="index.html">
+        Sign In / Sign Up
+      </a>
     </nav>
 
   </header>
 
 
-  <!-- Hero Section -->
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+
   <section class="hero">
 
-    <h1>
-      MOVE FAST <br>
-      BE AHEAD.
-    </h1>
+    <div class="hero-content">
 
-    <p class="quote">
-      "Stay ahead by learning and building."
-    </p>
+      <span class="hero-kicker">
+        AI-POWERED PROGRAMMING PLATFORM
+      </span>
+
+      <h1>
+        MOVE FAST <br>
+        <span>BE AHEAD.</span>
+      </h1>
+
+      <p class="quote">
+        "Stay ahead by learning and building."
+      </p>
+
+      <div class="hero-scroll-hint">
+        <span></span>
+        Scroll to explore
+      </div>
+
+    </div>
 
   </section>
 
 
-  <!-- Coding Images -->
+  <!-- =====================================================
+       CODING IMAGES
+       ===================================================== -->
+
   <section class="images">
 
-    <img
-      src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop"
-      alt="Programming and coding on a computer"
-    >
+    <div class="image-card">
 
-    <img
-      src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop"
-      alt="Code displayed on a computer screen"
-    >
+      <img
+        src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop"
+        alt="Programming and coding on a computer"
+        loading="lazy"
+      >
+
+      <div class="image-glow"></div>
+
+    </div>
+
+
+    <div class="image-card">
+
+      <img
+        src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop"
+        alt="Code displayed on a computer screen"
+        loading="lazy"
+      >
+
+      <div class="image-glow"></div>
+
+    </div>
 
   </section>
 
 
-  <!-- Programming Languages -->
+  <!-- =====================================================
+       PROGRAMMING LANGUAGES
+       ===================================================== -->
+
   <section class="languages">
 
-    <h2 class="section-heading">
-      Programming Languages
-    </h2>
+    <div class="section-intro">
+
+      <span class="section-eyebrow">
+        BUILD WITH
+      </span>
+
+      <h2 class="section-heading">
+        Programming Languages
+      </h2>
+
+      <p class="section-description">
+        Learn the tools developers use to build real-world software.
+      </p>
+
+    </div>
+
 
     <div class="card-grid">
 
+
       <!-- Python -->
-      <a href="python.html" class="language-card python">
+      <a
+        href="python.html"
+        class="language-card python"
+      >
 
         <div class="lang-logo">
+
           <img
             src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
             alt="Python logo"
           >
+
         </div>
 
         <div class="lang-info">
-          <h3>Python</h3>
+
+          <h3>
+            Python
+          </h3>
+
           <p>
             Basics to Pro
             <span class="lang-tagline">
               — automate scripts, build APIs, power AI
             </span>
           </p>
+
         </div>
 
       </a>
 
 
       <!-- JavaScript -->
-      <a href="javascript.html" class="language-card javascript">
+      <a
+        href="javascript.html"
+        class="language-card javascript"
+      >
 
         <div class="lang-logo">
+
           <img
             src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
             alt="JavaScript logo"
           >
+
         </div>
 
         <div class="lang-info">
-          <h3>JavaScript</h3>
+
+          <h3>
+            JavaScript
+          </h3>
+
           <p>
             Web Dev
             <span class="lang-tagline">
               — bring websites to life, from clicks to animations
             </span>
           </p>
+
         </div>
 
       </a>
 
 
       <!-- Java -->
-      <a href="java.html" class="language-card java">
+      <a
+        href="java.html"
+        class="language-card java"
+      >
 
         <div class="lang-logo">
+
           <img
             src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
             alt="Java logo"
           >
+
         </div>
 
         <div class="lang-info">
-          <h3>Java</h3>
+
+          <h3>
+            Java
+          </h3>
+
           <p>
             OOP Apps
             <span class="lang-tagline">
               — build robust apps trusted by enterprises
             </span>
           </p>
+
         </div>
 
       </a>
 
 
       <!-- Go -->
-      <a href="go.html" class="language-card go">
+      <a
+        href="go.html"
+        class="language-card go"
+      >
 
         <div class="lang-logo">
+
           <img
             src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg"
             alt="Go logo"
           >
+
         </div>
 
         <div class="lang-info">
-          <h3>Go</h3>
+
+          <h3>
+            Go
+          </h3>
+
           <p>
             Backend
             <span class="lang-tagline">
               — handle scale with speed and simplicity
             </span>
           </p>
+
         </div>
 
       </a>
 
 
       <!-- HTML -->
-      <a href="html.html" class="language-card html">
+      <a
+        href="html.html"
+        class="language-card html"
+      >
 
         <div class="lang-logo">
+
           <img
             src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
             alt="HTML logo"
           >
+
         </div>
 
         <div class="lang-info">
-          <h3>HTML</h3>
+
+          <h3>
+            HTML
+          </h3>
+
           <p>
             Structure
             <span class="lang-tagline">
               — lay the foundation every website stands on
             </span>
           </p>
+
         </div>
 
       </a>
 
 
       <!-- Rust -->
-      <a href="rust.html" class="language-card rust">
-<div class="lang-logo">
-  <img
-    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg"
-    alt="Rust logo"
-  >
-</div>
+      <a
+        href="rust.html"
+        class="language-card rust"
+      >
+
+        <div class="lang-logo">
+
+          <img
+            src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg"
+            alt="Rust logo"
+          >
+
+        </div>
 
         <div class="lang-info">
-          <h3>Rust</h3>
+
+          <h3>
+            Rust
+          </h3>
+
           <p>
             Systems
             <span class="lang-tagline">
               — write blazing-fast code without the crashes
             </span>
           </p>
+
         </div>
 
       </a>
@@ -382,15 +384,23 @@
   </section>
 
 
-  <!-- Be Ahead Live -->
+  <!-- =====================================================
+       BE AHEAD LIVE
+       ===================================================== -->
+
   <section class="live-cta">
 
     <span class="live-badge">
+
       <span class="dot"></span>
+
       New
+
     </span>
 
-    <h2>Be Ahead Live</h2>
+    <h2>
+      Be Ahead Live
+    </h2>
 
     <p>
       A spoken mock interview where you can interview in different
@@ -399,17 +409,27 @@
       interviews.
     </p>
 
-    <a href="interview.html" class="live-btn">
+    <a
+      href="interview.html"
+      class="live-btn"
+    >
       Start a Live Interview →
     </a>
 
   </section>
 
 
-  <!-- Why Be Ahead -->
+  <!-- =====================================================
+       WHY BE AHEAD
+       ===================================================== -->
+
   <section class="why">
 
     <div class="why-box">
+
+      <span class="section-eyebrow">
+        OUR PURPOSE
+      </span>
 
       <h2 class="why-heading">
         Why Be Ahead?
@@ -433,7 +453,10 @@
   </section>
 
 
-  <!-- Footer -->
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
   <footer>
 
     <p>
@@ -444,49 +467,67 @@
     </p>
 
     <p>
-      <a href="index.html" class="footer-link">
+      <a
+        href="index.html"
+        class="footer-link"
+      >
         Sign In / Sign Up
       </a>
     </p>
 
-    <hr
-      style="
-        width: 50px;
-        border: 0;
-        border-top: 1px solid #32cd32;
-        margin: 15px auto;
-      "
-    >
+    <hr>
 
-    &copy; 2026 Be Ahead <br>
+    &copy; 2026 Be Ahead
+    <br>
 
     Developed by
-    <strong>Ayush Tiwary</strong>
+    <strong>
+      Ayush Tiwary
+    </strong>
 
   </footer>
 
 
-  <!-- Main JavaScript -->
-  <script src="home.js"></script>
+  <!-- =====================================================
+       FLOATING ARENA BUTTON
+       ===================================================== -->
 
-
-  <!-- Arena Button -->
-  <a href="test.html" id="arena-btn">
-    🏆<br>
+  <a
+    href="test.html"
+    id="arena-btn"
+    aria-label="Open Be Ahead Arena"
+  >
+    🏆
+    <br>
     Arena
   </a>
 
 
-  <!-- Bug Hunter Button -->
-  <a href="bughunter.html" id="bughunter-btn">
+  <!-- =====================================================
+       FLOATING BUG HUNTER BUTTON
+       ===================================================== -->
+
+  <a
+    href="bughunter.html"
+    id="bughunter-btn"
+  >
     🐛 Bug Hunter
   </a>
 
 
-  <!-- Be AI -->
-  <div id="beai-chatbot">
+  <!-- =====================================================
+       BE AI
+       ===================================================== -->
+
+  <div
+    id="beai-chatbot"
+    role="button"
+    tabindex="0"
+    aria-label="Open Be AI"
+  >
     Be AI
   </div>
+
 
   <div id="beai-window">
 
@@ -500,11 +541,28 @@
       id="beai-input"
       type="text"
       placeholder="Ask BeAI..."
-    />
+      autocomplete="off"
+    >
 
   </div>
 
+
+  <!-- =====================================================
+       VANTA.JS + THREE.JS
+       ===================================================== -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
+
+
+  <!-- Main homepage JavaScript -->
+  <script src="home.js"></script>
+
+
+  <!-- Be AI JavaScript -->
   <script src="beai.js"></script>
 
 </body>
 </html>
+```
