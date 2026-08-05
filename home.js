@@ -1,271 +1,90 @@
-```javascript
-// ============================================================
-// home.js — Be Ahead Homepage Interactivity
-// ============================================================
-// Includes:
-// 1. Smooth 3D cursor-following tilt for language cards
-// 2. Scroll-reactive animated background / parallax
-// 3. Smooth in-page anchor scrolling
-// ============================================================
+// ============================================
+// home.js — Homepage interactivity for Be Ahead
+// Adds: fluid cursor-tracking tilt on language cards
+// (Entrance animations + shine sweep already handled
+//  by style.css, so JS only adds what CSS can't do.)
+// ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ==========================================================
-  // LANGUAGE CARD 3D TILT
-  // ==========================================================
+  // ---------- FLUID CARD TILT (lerped, not snapped) ----------
+  // Eases toward the cursor's tilt angle every frame instead of
+  // jumping straight to it — this is what makes it feel smooth.
+  // Only affects `transform`, so your existing hover box-shadow /
+  // border-glow / shine-sweep from style.css still work as-is.
 
   const cards = document.querySelectorAll(".language-card");
-
-  const LERP_SPEED = 0.12;
-  const MAX_TILT = 9;
+  const LERP_SPEED = 0.12; // lower = smoother/slower, higher = snappier
 
   cards.forEach((card) => {
-
-    let targetX = 0;
-    let targetY = 0;
-
-    let currentX = 0;
-    let currentY = 0;
-
+    let targetX = 0, targetY = 0;
+    let currentX = 0, currentY = 0;
     let hovering = false;
-    let animationFrame = null;
+    let raf = null;
 
-    function animateCard() {
-
+    const tick = () => {
       currentX += (targetX - currentX) * LERP_SPEED;
       currentY += (targetY - currentY) * LERP_SPEED;
 
-      const scale = hovering ? 1.035 : 1;
-      const lift = hovering ? -6 : 0;
+      const scale = hovering ? 1.045 : 1;
+      const lift = hovering ? -10 : 0;
 
       card.style.transform = `
-        perspective(900px)
+        perspective(700px)
         rotateX(${currentY}deg)
         rotateY(${currentX}deg)
         translateY(${lift}px)
         scale(${scale})
       `;
 
-      const stillMoving =
+      if (
         Math.abs(targetX - currentX) > 0.01 ||
         Math.abs(targetY - currentY) > 0.01 ||
-        hovering;
-
-      if (stillMoving) {
-        animationFrame = requestAnimationFrame(animateCard);
+        hovering
+      ) {
+        raf = requestAnimationFrame(tick);
       } else {
-        card.style.transform = "";
-        animationFrame = null;
+        card.style.transform = ""; // hand back control to CSS
+        raf = null;
       }
-    }
+    };
 
-    function startAnimation() {
-      if (!animationFrame) {
-        animationFrame = requestAnimationFrame(animateCard);
-      }
-    }
+    const startLoop = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
 
-    card.addEventListener("mouseenter", () => {
+    card.addEventListener("mousemove", (e) => {
       hovering = true;
-      startAnimation();
-    });
-
-    card.addEventListener("mousemove", (event) => {
-
       const rect = card.getBoundingClientRect();
-
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      targetX =
-        ((x - centerX) / centerX) * MAX_TILT;
+      targetX = ((x - centerX) / centerX) * 9;
+      targetY = ((y - centerY) / centerY) * -9;
 
-      targetY =
-        ((y - centerY) / centerY) * -MAX_TILT;
-
-      startAnimation();
+      startLoop();
     });
 
     card.addEventListener("mouseleave", () => {
-
       hovering = false;
-
       targetX = 0;
       targetY = 0;
-
-      startAnimation();
+      startLoop();
     });
-
   });
 
 
-  // ==========================================================
-  // SCROLL-REACTIVE BACKGROUND
-  // ==========================================================
-
-  const aurora = document.querySelector(".aurora-bg");
-
-  if (aurora) {
-
-    let currentScroll = 0;
-    let targetScroll = 0;
-
-    let backgroundFrame = null;
-
-    function animateBackground() {
-
-      currentScroll +=
-        (targetScroll - currentScroll) * 0.08;
-
-      // Move the complete aurora layer very slightly.
-      aurora.style.transform = `
-        translate3d(
-          0,
-          ${currentScroll * -0.045}px,
-          0
-        )
-      `;
-
-      backgroundFrame =
-        requestAnimationFrame(animateBackground);
-    }
-
-    window.addEventListener(
-      "scroll",
-      () => {
-        targetScroll = window.scrollY;
-      },
-      { passive: true }
-    );
-
-    animateBackground();
-  }
-
-
-  // ==========================================================
-  // INDIVIDUAL AURORA ELEMENT PARALLAX
-  // ==========================================================
-
-  const auroraSpans =
-    document.querySelectorAll(".aurora-bg > span");
-
-  const planet =
-    document.querySelector(".aurora-planet");
-
-  let scrollPosition = 0;
-  let targetPosition = 0;
-
-  let parallaxFrame = null;
-
-  function animateParallax() {
-
-    scrollPosition +=
-      (targetPosition - scrollPosition) * 0.07;
-
-    auroraSpans.forEach((blob, index) => {
-
-      const speeds = [
-        0.035,
-        -0.025,
-        0.02
-      ];
-
-      const speed = speeds[index] || 0.02;
-
-      const x =
-        Math.sin(scrollPosition * 0.002 + index) *
-        18;
-
-      const y =
-        scrollPosition * speed;
-
-      blob.style.transform =
-        `translate3d(${x}px, ${y}px, 0)`;
+  // ---------- SMOOTH SCROLL FOR IN-PAGE ANCHOR LINKS ----------
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     });
-
-
-    if (planet) {
-
-      const planetY =
-        scrollPosition * -0.06;
-
-      const planetX =
-        Math.sin(scrollPosition * 0.0015) * 15;
-
-      planet.style.transform =
-        `translate3d(${planetX}px, ${planetY}px, 0)`;
-    }
-
-    parallaxFrame =
-      requestAnimationFrame(animateParallax);
-  }
-
-  window.addEventListener(
-    "scroll",
-    () => {
-      targetPosition = window.scrollY;
-    },
-    { passive: true }
-  );
-
-  animateParallax();
-
-
-  // ==========================================================
-  // SMOOTH IN-PAGE SCROLL
-  // ==========================================================
-
-  document
-    .querySelectorAll('a[href^="#"]')
-    .forEach((link) => {
-
-      link.addEventListener("click", (event) => {
-
-        const selector =
-          link.getAttribute("href");
-
-        if (!selector || selector === "#") {
-          return;
-        }
-
-        const target =
-          document.querySelector(selector);
-
-        if (target) {
-
-          event.preventDefault();
-
-          target.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-
-        }
-
-      });
-
-    });
-
-
-  // ==========================================================
-  // REDUCED MOTION ACCESSIBILITY
-  // ==========================================================
-
-  const prefersReducedMotion =
-    window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
-
-  if (prefersReducedMotion.matches) {
-
-    cards.forEach((card) => {
-      card.style.transform = "";
-    });
-
-  }
+  });
 
 });
-```
