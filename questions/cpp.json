@@ -1,0 +1,22 @@
+[
+  {"q": "What is the output of cout << typeid(5).name();?", "options": ["i", "int", "float", "number"], "answer": 0},
+  {"q": "Which keyword is used to define a function in C++?", "options": ["function", "def", "No special keyword needed", "func"], "answer": 2},
+  {"q": "What does strlen(\"Hello\") return?", "options": ["4", "5", "6", "Error"], "answer": 1},
+  {"q": "How do you declare an array in C++?", "options": ["array = (1,2,3)", "int arr[] = {1,2,3};", "list arr = [1,2,3]", "arr := {1,2,3}"], "answer": 1},
+  {"q": "What is the correct file extension for C++ source files?", "options": [".cpp", ".c++", ".cxx", "All of these are valid"], "answer": 3},
+  {"q": "Which operator is used for exponentiation in C++?", "options": ["^", "**", "pow()", "exp"], "answer": 2},
+  {"q": "What does the 'this' keyword represent in a class method?", "options": ["The class itself", "A pointer to the current instance", "A static variable", "The parent class"], "answer": 1},
+  {"q": "Which of these is typically heap-allocated in C++?", "options": ["A stack int", "A value returned by new", "A function parameter", "A global constant"], "answer": 1},
+  {"q": "What is the output of 3 / 2 in C++ (both ints)?", "options": ["1.5", "1", "2", "1.0"], "answer": 1},
+  {"q": "How do you start a single-line comment in C++?", "options": ["#", "//", "/*", "--"], "answer": 1},
+  {"q": "What does the range-based loop 'for (int i : {0,1,2,3,4})' iterate over?", "options": ["0,1,2,3,4", "1,2,3,4,5", "0,1,2,3,4,5", "1,2,3,4"], "answer": 0},
+  {"q": "Which header is used for regular expressions in C++?", "options": ["<regex>", "<re>", "<regexp>", "<pcre>"], "answer": 0},
+  {"q": "What is a std::map in C++?", "options": ["An ordered sequence", "A collection of key-value pairs", "A type of loop", "A function wrapper"], "answer": 1},
+  {"q": "What does 'try/catch' handle?", "options": ["Loops", "Exceptions", "Includes", "Classes"], "answer": 1},
+  {"q": "Which function converts a string to an integer?", "options": ["stoi()", "str()", "toInt()", "atoi_str()"], "answer": 0},
+  {"q": "What is the output of bool(0) when printed as an int?", "options": ["true", "0", "false", "Error"], "answer": 1},
+  {"q": "Which directive is used to include a header file?", "options": ["import", "#include", "using", "require"], "answer": 1},
+  {"q": "What does a lambda expression create in C++?", "options": ["A loop", "An anonymous function object", "A class", "A namespace"], "answer": 1},
+  {"q": "What is the correct way to open a file for reading in C++?", "options": ["ofstream file(\"file.txt\");", "ifstream file(\"file.txt\");", "fstream file(\"file.txt\", ios::app);", "read(\"file.txt\");"], "answer": 1},
+  {"q": "What does 'vec.push_back(x)' do?", "options": ["Removes x from the vector", "Adds x to the end of the vector", "Sorts the vector", "Reverses the vector"], "answer": 1}
+]
