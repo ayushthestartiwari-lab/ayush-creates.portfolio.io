@@ -9,16 +9,13 @@
 <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
-
 <div class="aurora-bg">
   <span></span>
   <span></span>
   <span></span>
   <div class="aurora-planet"></div>
 </div>
-
 <div class="interview-shell">
-
   <!-- Top bar -->
   <header class="interview-topbar">
    <a href="home.html" class="interview-logo">be_ahead<span class="cursor-blink">_</span></a>  
@@ -27,13 +24,11 @@
       <span id="statusText">idle</span>
     </div>
   </header>
-
   <!-- Setup screen -->
   <section class="panel setup-panel" id="setupPanel">
     <p class="term-line"># be_ahead / mock_interview_v1</p>
     <p class="term-line">&gt;&gt;&gt; select a track and I will run a short spoken interview.</p>
     <p class="term-line">&gt;&gt;&gt; camera + mic access required. nothing is uploaded — video never leaves your browser.</p>
-
     <div class="setup-row">
       <label for="topicSelect" class="term-label"># topic</label>
       <select id="topicSelect" class="term-select">
@@ -43,19 +38,16 @@
         <option value="go">Go</option>
         <option value="rust">Rust</option>
         <option value="html">HTML</option>
+        <option value="cpp">C++</option>
         <option value="general">General / Behavioral</option>
       </select>
     </div>
-
     <button class="term-btn" id="startBtn">&gt;&gt;&gt; start_interview()</button>
     <p class="term-line error-line" id="permError" hidden></p>
   </section>
-
   <!-- Live interview screen -->
   <section class="panel interview-panel" id="interviewPanel" hidden>
-
     <div class="interview-grid">
-
       <div class="video-col">
         <video id="camPreview" autoplay muted playsinline></video>
         <canvas id="faceCanvas"></canvas>
@@ -65,10 +57,8 @@
           <span id="timer">00:00</span>
         </div>
       </div>
-
       <div class="transcript-col">
         <div class="transcript-log" id="transcriptLog"></div>
-
         <div class="mic-row">
           <div class="mic-indicator" id="micIndicator">
             <span class="mic-dot"></span>
@@ -77,10 +67,8 @@
           <button class="term-btn-small" id="endBtn">&gt;&gt;&gt; end_interview()</button>
         </div>
       </div>
-
     </div>
   </section>
-
   <!-- Report screen -->
   <section class="panel report-panel" id="reportPanel" hidden>
     <p class="term-line"># interview_report.json</p>
@@ -89,9 +77,7 @@
     </div>
     <button class="term-btn" id="restartBtn">&gt;&gt;&gt; new_interview()</button>
   </section>
-
 </div>
-
 <script src="interview.js"></script>
 </body>
 </html>
