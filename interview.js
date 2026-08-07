@@ -116,6 +116,23 @@
       "What's the purpose of `alt` text on images?",
       "How do you handle browser compatibility for older HTML features?"
     ],
+    cpp: [
+      "Tell me a bit about your experience with C++.",
+      "What's the difference between a pointer and a reference?",
+      "How does memory management work in C++ — stack vs heap?",
+      "Explain what RAII means, in your own words.",
+      "Describe a project or problem where you used C++, like a competitive programming contest.",
+      "What's the difference between `new`/`delete` and `malloc`/`free`?",
+      "How do virtual functions and polymorphism work in C++?",
+      "What's the difference between a shallow copy and a deep copy for a class?",
+      "How does the Standard Template Library help you avoid writing your own data structures?",
+      "What's the difference between `struct` and `class` in C++?",
+      "How would you debug a segmentation fault?",
+      "What's a smart pointer, and why would you prefer it over a raw pointer?",
+      "How does function overloading differ from templates?",
+      "What's undefined behavior, and can you give an example?",
+      "How would you approach reducing the time complexity of a brute-force solution?"
+    ],
     general: [
       "Tell me a bit about yourself and what you're working on.",
       "Describe a challenging problem you solved recently.",
