@@ -1,48 +1,121 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  // Allow only POST requests
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+
+    return res.status(405).json({
+      error: "Method not allowed",
+    });
   }
 
-  const { prompt } = req.body;
+  // Read the request body safely
+  const { prompt } = req.body || {};
 
-  if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-    return res.status(400).json({ error: 'Prompt is required' });
+  if (typeof prompt !== "string" || prompt.trim().length === 0) {
+    return res.status(400).json({
+      error: "Prompt is required",
+    });
+  }
+
+  const apiKey = process.env.GEMINI_PROMPT_ENHANCER_KEY;
+
+  if (!apiKey) {
+    console.error(
+      "Missing GEMINI_PROMPT_ENHANCER_KEY environment variable"
+    );
+
+    return res.status(500).json({
+      error: "Gemini API key is not configured",
+    });
   }
 
   try {
-    const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    const geminiResponse = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': process.env.GEMINI_PROMPT_ENHANCER_KEY
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text: [
+                  "You are an expert prompt engineer.",
+                  "Rewrite the user's prompt to make it clearer, more specific, and more effective.",
+                  "Add useful context, structure, constraints, and examples when appropriate.",
+                  "Preserve the user's original intention.",
+                  "Return only the improved prompt.",
+                  "Do not include explanations, preambles, markdown, or quotation marks.",
+                ].join(" "),
+              },
+            ],
+          },
           contents: [
             {
+              role: "user",
               parts: [
                 {
-                  text: `You are a prompt engineering expert. Rewrite the following prompt to be clearer, more specific, and more effective. Add context, structure, or examples where helpful. Return ONLY the improved prompt text — no explanation, no preamble, no markdown formatting.\n\nOriginal prompt:\n${prompt}`
-                }
-              ]
-            }
-          ]
-        })
+                  text: prompt.trim(),
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
       }
     );
 
-    const data = await response.json();
-    const enhanced = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const data = await geminiResponse.json();
 
-    if (!enhanced) {
-      console.error('Unexpected Gemini response:', JSON.stringify(data));
-      return res.status(502).json({ error: 'Could not enhance prompt right now' });
+    // Do not hide Gemini's actual error
+    if (!geminiResponse.ok) {
+      console.error("Gemini API error:", {
+        status: geminiResponse.status,
+        data,
+      });
+
+      return res.status(geminiResponse.status).json({
+        error:
+          data?.error?.message ||
+          `Gemini request failed with status ${geminiResponse.status}`,
+      });
     }
 
-    return res.status(200).json({ enhanced: enhanced.trim() });
-  } catch (err) {
-    console.error('Prompt enhancer error:', err);
-    return res.status(500).json({ error: 'Something went wrong' });
+    const enhanced = data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim();
+
+    // Handle blocked or empty responses
+    if (!enhanced) {
+      const reason =
+        data?.promptFeedback?.blockReason ||
+        data?.candidates?.[0]?.finishReason ||
+        "Gemini returned an empty response";
+
+      console.error("Gemini returned no usable text:", {
+        reason,
+        data,
+      });
+
+      return res.status(502).json({
+        error: `Could not enhance prompt: ${reason}`,
+      });
+    }
+
+    return res.status(200).json({
+      enhanced,
+    });
+  } catch (error) {
+    console.error("Prompt enhancer error:", error);
+
+    return res.status(500).json({
+      error: "Unable to connect to Gemini",
+    });
   }
 }
