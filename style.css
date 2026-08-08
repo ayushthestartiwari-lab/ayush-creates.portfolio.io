@@ -1126,3 +1126,19 @@ nav a:hover { text-decoration: underline; }
   margin-bottom: 10px;
   color: #f1f1f1;
 }
+
+/* Prompt Enhancer CTA button — match Be Ahead Live's white pill button exactly */
+.prompt-enhancer-card a.live-btn {
+  display: inline-block;
+  background: #fff;
+  color: #111827;
+  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.prompt-enhancer-card a.live-btn:hover {
+  transform: scale(1.03);
+}
