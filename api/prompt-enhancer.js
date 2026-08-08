@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Allow only POST requests
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
 
@@ -8,48 +7,59 @@ export default async function handler(req, res) {
     });
   }
 
-  // Read the request body safely
-  const { prompt } = req.body || {};
+  const prompt = req.body?.prompt;
 
-  if (typeof prompt !== "string" || prompt.trim().length === 0) {
+  if (typeof prompt !== "string" || !prompt.trim()) {
     return res.status(400).json({
       error: "Prompt is required",
     });
   }
 
-  const apiKey = process.env.GEMINI_PROMPT_ENHANCER_KEY;
+  const rawApiKey = process.env.GEMINI_PROMPT_ENHANCER_KEY;
 
-  if (!apiKey) {
-    console.error(
-      "Missing GEMINI_PROMPT_ENHANCER_KEY environment variable"
-    );
+  if (!rawApiKey) {
+    console.error("GEMINI_PROMPT_ENHANCER_KEY is missing");
 
     return res.status(500).json({
       error: "Gemini API key is not configured",
     });
   }
 
+  // Handles accidental spaces or quotes copied into Vercel.
+  const apiKey = rawApiKey.trim().replace(/^["']|["']$/g, "");
+
+  if (!apiKey || apiKey.includes("GEMINI_PROMPT_ENHANCER_KEY=")) {
+    console.error("GEMINI_PROMPT_ENHANCER_KEY contains an invalid value");
+
+    return res.status(500).json({
+      error: "Gemini API key configuration is invalid",
+    });
+  }
+
   try {
+    const endpoint =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      "gemini-2.5-flash:generateContent";
+
     const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      `${endpoint}?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           systemInstruction: {
             parts: [
               {
-                text: [
-                  "You are an expert prompt engineer.",
-                  "Rewrite the user's prompt to make it clearer, more specific, and more effective.",
-                  "Add useful context, structure, constraints, and examples when appropriate.",
-                  "Preserve the user's original intention.",
-                  "Return only the improved prompt.",
-                  "Do not include explanations, preambles, markdown, or quotation marks.",
-                ].join(" "),
+                text:
+                  "You are an expert prompt engineer. Rewrite the user's " +
+                  "prompt to make it clearer, more specific, and more " +
+                  "effective. Preserve the user's original intention. Add " +
+                  "useful context, structure, constraints, and examples " +
+                  "when appropriate. Return only the improved prompt. Do " +
+                  "not include explanations, preambles, markdown, or " +
+                  "quotation marks.",
               },
             ],
           },
@@ -72,11 +82,11 @@ export default async function handler(req, res) {
 
     const data = await geminiResponse.json();
 
-    // Do not hide Gemini's actual error
     if (!geminiResponse.ok) {
       console.error("Gemini API error:", {
         status: geminiResponse.status,
-        data,
+        message: data?.error?.message,
+        statusText: data?.error?.status,
       });
 
       return res.status(geminiResponse.status).json({
@@ -87,18 +97,17 @@ export default async function handler(req, res) {
     }
 
     const enhanced = data?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
+      ?.map((part) => part?.text || "")
       .join("")
       .trim();
 
-    // Handle blocked or empty responses
     if (!enhanced) {
       const reason =
         data?.promptFeedback?.blockReason ||
         data?.candidates?.[0]?.finishReason ||
-        "Gemini returned an empty response";
+        "Gemini returned no text";
 
-      console.error("Gemini returned no usable text:", {
+      console.error("Gemini returned no usable response:", {
         reason,
         data,
       });
@@ -112,7 +121,7 @@ export default async function handler(req, res) {
       enhanced,
     });
   } catch (error) {
-    console.error("Prompt enhancer error:", error);
+    console.error("Prompt enhancer connection error:", error);
 
     return res.status(500).json({
       error: "Unable to connect to Gemini",
