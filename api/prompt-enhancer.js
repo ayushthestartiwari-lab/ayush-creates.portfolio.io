@@ -18,75 +18,63 @@ export default async function handler(req, res) {
   const rawApiKey = process.env.GEMINI_PROMPT_ENHANCER_KEY;
 
   if (!rawApiKey) {
-    console.error("GEMINI_PROMPT_ENHANCER_KEY is missing");
+    console.error("Missing GEMINI_PROMPT_ENHANCER_KEY");
 
     return res.status(500).json({
       error: "Gemini API key is not configured",
     });
   }
 
-  // Handles accidental spaces or quotes copied into Vercel.
   const apiKey = rawApiKey.trim().replace(/^["']|["']$/g, "");
 
-  if (!apiKey || apiKey.includes("GEMINI_PROMPT_ENHANCER_KEY=")) {
-    console.error("GEMINI_PROMPT_ENHANCER_KEY contains an invalid value");
-
-    return res.status(500).json({
-      error: "Gemini API key configuration is invalid",
-    });
-  }
-
   try {
-    const endpoint =
-      "https://generativelanguage.googleapis.com/v1beta/models/" +
-      "gemini-2.5-flash:generateContent";
+    const model = "gemini-3.5-flash";
 
-    const geminiResponse = await fetch(
-      `${endpoint}?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/` +
+      `${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+    const geminiResponse = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [
+            {
+              text:
+                "You are an expert prompt engineer. Rewrite the user's " +
+                "prompt to make it clearer, more specific, and more effective. " +
+                "Preserve the user's original intention. Add useful context, " +
+                "structure, constraints, and examples when appropriate. " +
+                "Return only the improved prompt. Do not include explanations, " +
+                "preambles, markdown, or quotation marks.",
+            },
+          ],
         },
-        body: JSON.stringify({
-          systemInstruction: {
+        contents: [
+          {
+            role: "user",
             parts: [
               {
-                text:
-                  "You are an expert prompt engineer. Rewrite the user's " +
-                  "prompt to make it clearer, more specific, and more " +
-                  "effective. Preserve the user's original intention. Add " +
-                  "useful context, structure, constraints, and examples " +
-                  "when appropriate. Return only the improved prompt. Do " +
-                  "not include explanations, preambles, markdown, or " +
-                  "quotation marks.",
+                text: prompt.trim(),
               },
             ],
           },
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: prompt.trim(),
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
+        ],
+        generationConfig: {
+          temperature: 0.7,
+        },
+      }),
+    });
 
     const data = await geminiResponse.json();
 
     if (!geminiResponse.ok) {
       console.error("Gemini API error:", {
         status: geminiResponse.status,
-        message: data?.error?.message,
-        statusText: data?.error?.status,
+        data,
       });
 
       return res.status(geminiResponse.status).json({
@@ -107,7 +95,7 @@ export default async function handler(req, res) {
         data?.candidates?.[0]?.finishReason ||
         "Gemini returned no text";
 
-      console.error("Gemini returned no usable response:", {
+      console.error("Gemini returned no usable text:", {
         reason,
         data,
       });
@@ -121,7 +109,7 @@ export default async function handler(req, res) {
       enhanced,
     });
   } catch (error) {
-    console.error("Prompt enhancer connection error:", error);
+    console.error("Prompt enhancer error:", error);
 
     return res.status(500).json({
       error: "Unable to connect to Gemini",
