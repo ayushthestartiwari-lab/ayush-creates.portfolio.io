@@ -179,6 +179,32 @@
       --card-glow: rgba(0, 89, 156, 0.5);
     }
 
+    /* Footer social links */
+    .footer-social {
+      margin: 15px 0;
+    }
+
+    .footer-social a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #ff0033;
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-social a:hover {
+      opacity: 0.75;
+      text-decoration: underline;
+    }
+
+    .footer-social svg {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
   </style>
 
 </head>
@@ -486,6 +512,14 @@
     <p>
       <a href="index.html" class="footer-link">
         Sign In / Sign Up
+      </a>
+    </p>
+
+    <p class="footer-social">
+      <a href="https://www.youtube.com/@Beahead619" target="_blank" rel="noopener noreferrer" aria-label="Be Ahead on YouTube">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M23.498 6.186a2.994 2.994 0 0 0-2.107-2.12C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.391.566a2.994 2.994 0 0 0-2.107 2.12A31.16 31.16 0 0 0 0 12a31.16 31.16 0 0 0 .502 5.814 2.994 2.994 0 0 0 2.107 2.12C4.495 20.5 12 20.5 12 20.5s7.505 0 9.391-.566a2.994 2.994 0 0 0 2.107-2.12A31.16 31.16 0 0 0 24 12a31.16 31.16 0 0 0-.502-5.814zM9.75 15.568V8.432L15.818 12l-6.068 3.568z"/>
+        </svg>
       </a>
     </p>
 
