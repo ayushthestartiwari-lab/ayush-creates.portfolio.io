@@ -10,7 +10,7 @@
 // Reuses the same Upstash Redis REST setup as BeAI for per-visitor daily
 // rate limiting.
 
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 const GEMINI_MODEL = "gemini-3.6-flash";
 const GEMINI_FALLBACK_MODEL = "gemini-2.5-flash";
 
