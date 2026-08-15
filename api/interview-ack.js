@@ -19,7 +19,7 @@
 // so without a cap it could be hit directly (bypassing the frontend) in
 // a loop and burn through Groq quota.
 
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 const REQUEST_TIMEOUT_MS = 3000; // tight — this must never noticeably slow the interview
 const DAILY_LIMIT = 100; // acks per visitor per day — generous, since ~5-8 fire per interview
 const MAX_ACK_WORDS = 30; // hard cap in case the model ignores the word-limit instruction
