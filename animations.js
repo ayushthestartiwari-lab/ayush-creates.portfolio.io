@@ -1,4 +1,7 @@
 // animations.js
+// Uses Motion (https://motion.dev) loaded globally via CDN in home.html.
+// Must load AFTER the Motion <script> tag and BEFORE/independent of home.js.
+
 const { animate, stagger, inView } = Motion;
 
 // ---- Hero: fade + rise on load ----
@@ -21,13 +24,17 @@ animate(
 );
 
 // ---- Language cards: reveal as they scroll into view ----
-inView(".language-card", (element) => {
-  animate(
-    element,
-    { opacity: [0, 1], y: [30, 0] },
-    { duration: 0.5, easing: [0.22, 1, 0.36, 1] }
-  );
-}, { margin: "-10% 0px -10% 0px" });
+inView(
+  ".language-card",
+  (element) => {
+    animate(
+      element,
+      { opacity: [0, 1], y: [30, 0] },
+      { duration: 0.5, easing: [0.22, 1, 0.36, 1] }
+    );
+  },
+  { margin: "-10% 0px -10% 0px" }
+);
 
 // ---- Be Ahead Live section ----
 inView(".live-cta", (element) => {
