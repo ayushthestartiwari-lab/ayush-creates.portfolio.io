@@ -1138,8 +1138,12 @@ nav a:hover { text-decoration: underline; }
   text-decoration: none;
   transition: transform 0.2s ease;
 }
-1.03);
+
+.prompt-enhancer-card a.live-btn:hover {
+  transform: scale(1.03);
 }
+
+/* Motion animation starting states — prevents flash before JS animates in */
 .hero h1,
 .hero .quote,
 .images img,
