@@ -1,584 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-G5DCS5F9GR"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-G5DCS5F9GR');
+</script>
 
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-G5DCS5F9GR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-G5DCS5F9GR');
-  </script>
+<!-- Basic SEO -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be Ahead — Learn, Build & Practice Programming</title>
+<meta
+  name="description"
+  content="Be Ahead is an AI-powered programming platform where you can learn, build, practice coding, take AI mock interviews, play Bug Hunter, and test your skills in Arena."
+>
+<meta
+  name="keywords"
+  content="programming, coding, AI, coding practice, programming learning, coding challenges, AI mock interview, programming interview, Be Ahead"
+>
+<meta name="author" content="Ayush Tiwary">
+<meta name="robots" content="index, follow">
 
-  <!-- Basic SEO -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Open Graph / Social Sharing -->
+<meta property="og:title" content="Be Ahead — Learn, Build & Practice Programming">
+<meta
+  property="og:description"
+  content="Learn, build and practice programming with AI-powered tools, coding challenges, mock interviews and more."
+>
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://be-ahead.vercel.app/">
 
-  <title>Be Ahead — Learn, Build & Practice Programming</title>
+<!-- Icons -->
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-  <meta
-    name="description"
-    content="Be Ahead is an AI-powered programming platform where you can learn, build, practice coding, take AI mock interviews, play Bug Hunter, and test your skills in Arena."
-  >
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
 
-  <meta
-    name="keywords"
-    content="programming, coding, AI, coding practice, programming learning, coding challenges, AI mock interview, programming interview, Be Ahead"
-  >
+<style>
+/* Simple nav link styling */
+nav {
+  margin-top: 10px;
+  text-align: right;
+}
+nav a {
+  color: #2a5298;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: bold;
+}
+nav a:hover {
+  text-decoration: underline;
+}
 
-  <meta name="author" content="Ayush Tiwary">
-  <meta name="robots" content="index, follow">
+/* Nudge BeAI up on this page only, so Arena can sit below it */
+#beai-chatbot {
+  bottom: 88px;
+}
 
-  <!-- Open Graph / Social Sharing -->
-  <meta property="og:title" content="Be Ahead — Learn, Build & Practice Programming">
+/* Floating "Be Ahead Arena" button — compact, sits right under BeAI */
+#arena-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7c3aed, #d94f9c);
+  color: #fff;
+  border-radius: 50%;
+  text-decoration: none;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.68em;
+  line-height: 1.15;
+  letter-spacing: 0.1px;
+  box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
+  z-index: 9998;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#arena-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
+}
 
-  <meta
-    property="og:description"
-    content="Learn, build and practice programming with AI-powered tools, coding challenges, mock interviews and more."
-  >
+/* Floating "Bug Hunter" button — rectangular, top-right */
+#bughunter-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #7c3aed, #d94f9c);
+  color: #fff;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9em;
+  box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
+  z-index: 9998;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#bughunter-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
+}
 
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://beahead.vexr.dev/">
+/* =========================================
+   LANGUAGE CARD LOGOS
+========================================= */
+.lang-logo {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-accent);
+  box-shadow:
+    0 0 15px var(--card-glow),
+    inset 0 0 12px rgba(255, 255, 255, 0.04);
+  position: relative;
+  z-index: 2;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.lang-logo img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+.language-card:hover .lang-logo {
+  transform: scale(1.08);
+  box-shadow:
+    0 0 25px var(--card-glow),
+    inset 0 0 12px rgba(255, 255, 255, 0.08);
+}
 
-  <!-- Icons -->
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
-
-  <style>
-
-    /* Simple nav link styling */
-    nav {
-      margin-top: 10px;
-      text-align: right;
-    }
-
-    nav a {
-      color: #2a5298;
-      text-decoration: none;
-      margin: 0 10px;
-      font-weight: bold;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
-
-    /* Nudge BeAI up on this page only, so Arena can sit below it */
-    #beai-chatbot {
-      bottom: 88px;
-    }
-
-    /* Floating "Be Ahead Arena" button — compact, sits right under BeAI */
-    #arena-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 64px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #7c3aed, #d94f9c);
-      color: #fff;
-      border-radius: 50%;
-      text-decoration: none;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.68em;
-      line-height: 1.15;
-      letter-spacing: 0.1px;
-      box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
-      z-index: 9998;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    #arena-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
-    }
-
-    /* Floating "Bug Hunter" button — rectangular, top-right */
-    #bughunter-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #7c3aed, #d94f9c);
-      color: #fff;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.9em;
-      box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5);
-      z-index: 9998;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    #bughunter-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
-    }
-
-    /* =========================================
-       LANGUAGE CARD LOGOS
-       ========================================= */
-
-    .lang-logo {
-      width: 58px;
-      height: 58px;
-      min-width: 58px;
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      margin-right: 18px;
-
-      background: rgba(255, 255, 255, 0.08);
-
-      border: 1px solid var(--card-accent);
-
-      box-shadow:
-        0 0 15px var(--card-glow),
-        inset 0 0 12px rgba(255, 255, 255, 0.04);
-
-      position: relative;
-      z-index: 2;
-
-      transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease;
-    }
-
-    .lang-logo img {
-      width: 34px;
-      height: 34px;
-      object-fit: contain;
-      display: block;
-    }
-
-    .language-card:hover .lang-logo {
-      transform: scale(1.08);
-
-      box-shadow:
-        0 0 25px var(--card-glow),
-        inset 0 0 12px rgba(255, 255, 255, 0.08);
-    }
-
-    /* C++ card accent (adjust to match your other .language-card.<lang> rules in style.css) */
-    .language-card.cpp {
-      --card-accent: #00599C;
-      --card-glow: rgba(0, 89, 156, 0.5);
-    }
-
-    /* Footer social links */
-    .footer-social {
-      margin: 15px 0;
-    }
-
-    .footer-social a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: #ff0033;
-      text-decoration: none;
-      font-weight: 600;
-      transition: opacity 0.2s ease;
-    }
-
-    .footer-social a:hover {
-      opacity: 0.75;
-      text-decoration: underline;
-    }
-
-    .footer-social svg {
-      width: 28px;
-      height: 28px;
-      flex-shrink: 0;
-    }
-
-  </style>
-
+/* C++ card accent (adjust to match your other .language-card.<lang> rules in style.css) */
+.language-card.cpp {
+  --card-accent: #00599C;
+  --card-glow: rgba(0, 89, 156, 0.5);
+}
+</style>
 </head>
-
 <body>
 
-  <!-- Aurora Background -->
-  <div class="aurora-bg">
-    <span></span>
-    <span></span>
-    <span></span>
-    <div class="aurora-planet"></div>
-  </div>
-
-  <!-- Header -->
-  <header>
-
-    <img src="logo.jpg" alt="Be Ahead Logo" class="logo-overlay">
-
-    <h1 class="site-title">Be Ahead.</h1>
-
-    <nav>
-      <a href="index.html">Sign In / Sign Up</a>
-    </nav>
-
-  </header>
-
-
-  <!-- Hero Section -->
-  <section class="hero">
-
-    <h1>
-      MOVE FAST <br>
-      BE AHEAD.
-    </h1>
-
-    <p class="quote">
-      "Stay ahead by learning and building."
-    </p>
-
-  </section>
-
-
-  <!-- Coding Images -->
-  <section class="images">
-
-    <img
-      src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop"
-      alt="Programming and coding on a computer"
-    >
-
-    <img
-      src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop"
-      alt="Code displayed on a computer screen"
-    >
-
-  </section>
-
-
-  <!-- Programming Languages -->
-  <section class="languages">
-
-    <h2 class="section-heading">
-      Programming Languages
-    </h2>
-
-    <div class="card-grid">
-
-      <!-- Python -->
-      <a href="python.html" class="language-card python">
-
-        <div class="lang-logo">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
-            alt="Python logo"
-          >
-        </div>
-
-        <div class="lang-info">
-          <h3>Python</h3>
-          <p>
-            Basics to Pro
-            <span class="lang-tagline">
-              — automate scripts, build APIs, power AI
-            </span>
-          </p>
-        </div>
-
-      </a>
-
-
-      <!-- JavaScript -->
-      <a href="javascript.html" class="language-card javascript">
-
-        <div class="lang-logo">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
-            alt="JavaScript logo"
-          >
-        </div>
-
-        <div class="lang-info">
-          <h3>JavaScript</h3>
-          <p>
-            Web Dev
-            <span class="lang-tagline">
-              — bring websites to life, from clicks to animations
-            </span>
-          </p>
-        </div>
-
-      </a>
-
-
-      <!-- Java -->
-      <a href="java.html" class="language-card java">
-
-        <div class="lang-logo">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
-            alt="Java logo"
-          >
-        </div>
-
-        <div class="lang-info">
-          <h3>Java</h3>
-          <p>
-            OOP Apps
-            <span class="lang-tagline">
-              — build robust apps trusted by enterprises
-            </span>
-          </p>
-        </div>
-
-      </a>
-
-
-      <!-- Go -->
-      <a href="go.html" class="language-card go">
-
-        <div class="lang-logo">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg"
-            alt="Go logo"
-          >
-        </div>
-
-        <div class="lang-info">
-          <h3>Go</h3>
-          <p>
-            Backend
-            <span class="lang-tagline">
-              — handle scale with speed and simplicity
-            </span>
-          </p>
-        </div>
-
-      </a>
-
-
-      <!-- HTML -->
-      <a href="html.html" class="language-card html">
-
-        <div class="lang-logo">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
-            alt="HTML logo"
-          >
-        </div>
-
-        <div class="lang-info">
-          <h3>HTML</h3>
-          <p>
-            Structure
-            <span class="lang-tagline">
-              — lay the foundation every website stands on
-            </span>
-          </p>
-        </div>
-
-      </a>
-
-
-      <!-- Rust -->
-      <a href="rust.html" class="language-card rust">
-<div class="lang-logo">
-  <img
-    src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg"
-    alt="Rust logo"
-  >
+<!-- Aurora Background -->
+<div class="aurora-bg">
+  <span></span>
+  <span></span>
+  <span></span>
+  <div class="aurora-planet"></div>
 </div>
 
-        <div class="lang-info">
-          <h3>Rust</h3>
-          <p>
-            Systems
-            <span class="lang-tagline">
-              — write blazing-fast code without the crashes
-            </span>
-          </p>
-        </div>
+<!-- Header -->
+<header>
+  <img src="logo.jpg" alt="Be Ahead Logo" class="logo-overlay">
+  <h1 class="site-title">Be Ahead.</h1>
+  <nav>
+    <a href="index.html">Sign In / Sign Up</a>
+  </nav>
+</header>
 
-      </a>
+<!-- Hero Section -->
+<section class="hero">
+  <h1>
+    MOVE FAST <br>
+    BE AHEAD.
+  </h1>
+  <p class="quote">
+    "Stay ahead by learning and building."
+  </p>
+</section>
 
+<!-- Coding Images -->
+<section class="images">
+  <img
+    src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop"
+    alt="Programming and coding on a computer"
+  >
+  <img
+    src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop"
+    alt="Code displayed on a computer screen"
+  >
+</section>
 
-      <!-- C++ -->
-      <a href="cpp.html" class="language-card cpp">
+<!-- Programming Languages -->
+<section class="languages">
+  <h2 class="section-heading">
+    Programming Languages
+  </h2>
+  <div class="card-grid">
 
-        <div class="lang-logo">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg"
-            alt="C++ logo"
-          >
-        </div>
-
-        <div class="lang-info">
-          <h3>C++</h3>
-          <p>
-            Competitive Programming
-            <span class="lang-tagline">
-              — master the language behind speed and DSA mastery
-            </span>
-          </p>
-        </div>
-
-      </a>
-
-    </div>
-
-  </section>
-
-
-  <!-- Be Ahead Live -->
-  <section class="live-cta">
-
-    <span class="live-badge">
-      <span class="dot"></span>
-      New
-    </span>
-
-    <h2>Be Ahead Live</h2>
-
-    <p>
-      A spoken mock interview where you can interview in different
-      programming languages and receive a detailed AI-generated
-      progress report. Test yourself and prepare for future technical
-      interviews.
-    </p>
-
-    <a href="interview.html" class="live-btn">
-      Start a Live Interview →
+    <!-- Python -->
+    <a href="python.html" class="language-card python">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
+          alt="Python logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>Python</h3>
+        <p>
+          Basics to Pro
+          <span class="lang-tagline">
+            — automate scripts, build APIs, power AI
+          </span>
+        </p>
+      </div>
     </a>
 
-  </section>
-  
-  <!-- Prompt Enhancer -->
-<section class="prompt-enhancer">
-  <div class="prompt-enhancer-card">
-    <span class="live-badge">
-      <span class="dot"></span>
-      New
-    </span>
-    <h2>Prompt Enhancer</h2>
-    <p>
-      Paste a rough prompt and get back a clearer, more effective version —
-      instantly, powered by AI.
-    </p>
-    <a href="prompt-enhancer.html" class="live-btn">
-      Try Prompt Enhancer →
+    <!-- JavaScript -->
+    <a href="javascript.html" class="language-card javascript">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
+          alt="JavaScript logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>JavaScript</h3>
+        <p>
+          Web Dev
+          <span class="lang-tagline">
+            — bring websites to life, from clicks to animations
+          </span>
+        </p>
+      </div>
     </a>
+
+    <!-- Java -->
+    <a href="java.html" class="language-card java">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
+          alt="Java logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>Java</h3>
+        <p>
+          OOP Apps
+          <span class="lang-tagline">
+            — build robust apps trusted by enterprises
+          </span>
+        </p>
+      </div>
+    </a>
+
+    <!-- Go -->
+    <a href="go.html" class="language-card go">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg"
+          alt="Go logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>Go</h3>
+        <p>
+          Backend
+          <span class="lang-tagline">
+            — handle scale with speed and simplicity
+          </span>
+        </p>
+      </div>
+    </a>
+
+    <!-- HTML -->
+    <a href="html.html" class="language-card html">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
+          alt="HTML logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>HTML</h3>
+        <p>
+          Structure
+          <span class="lang-tagline">
+            — lay the foundation every website stands on
+          </span>
+        </p>
+      </div>
+    </a>
+
+    <!-- Rust -->
+    <a href="rust.html" class="language-card rust">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg"
+          alt="Rust logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>Rust</h3>
+        <p>
+          Systems
+          <span class="lang-tagline">
+            — write blazing-fast code without the crashes
+          </span>
+        </p>
+      </div>
+    </a>
+
+    <!-- C++ -->
+    <a href="cpp.html" class="language-card cpp">
+      <div class="lang-logo">
+        <img
+          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg"
+          alt="C++ logo"
+        >
+      </div>
+      <div class="lang-info">
+        <h3>C++</h3>
+        <p>
+          Competitive Programming
+          <span class="lang-tagline">
+            — master the language behind speed and DSA mastery
+          </span>
+        </p>
+      </div>
+    </a>
+
   </div>
 </section>
 
-  <!-- Why Be Ahead -->
-  <section class="why">
-
-    <div class="why-box">
-
-      <h2 class="why-heading">
-        Why Be Ahead?
-      </h2>
-
-      <p>
-⭐ Learn by doing, not just reading — real tools, real practice.
-🤖 Get instant help from Be AI, sharpen your skills in Arena, squash bugs in Bug Hunter, and prep for the real thing with Be Ahead Live mock interviews.
-🚀 Move fast, stay curious, and always be ahead.
-😊 "We don't just teach syntax — we help you bridge the gap between a blank screen and a working application."
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- Footer -->
-  <footer>
-
-    <p>
-      For any queries, please mail us at:
-      <a href="mailto:kumartiwariayush19@gmail.com">
-        kumartiwariayush19@gmail.com
-      </a>
-    </p>
-
-    <p>
-      <a href="index.html" class="footer-link">
-        Sign In / Sign Up
-      </a>
-    </p>
-
-    <p class="footer-social">
-      <a href="https://www.youtube.com/@Beahead619" target="_blank" rel="noopener noreferrer" aria-label="Be Ahead on YouTube">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M23.498 6.186a2.994 2.994 0 0 0-2.107-2.12C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.391.566a2.994 2.994 0 0 0-2.107 2.12A31.16 31.16 0 0 0 0 12a31.16 31.16 0 0 0 .502 5.814 2.994 2.994 0 0 0 2.107 2.12C4.495 20.5 12 20.5 12 20.5s7.505 0 9.391-.566a2.994 2.994 0 0 0 2.107-2.12A31.16 31.16 0 0 0 24 12a31.16 31.16 0 0 0-.502-5.814zM9.75 15.568V8.432L15.818 12l-6.068 3.568z"/>
-        </svg>
-      </a>
-    </p>
-
-    <hr
-      style="
-        width: 50px;
-        border: 0;
-        border-top: 1px solid #32cd32;
-        margin: 15px auto;
-      "
-    >
-
-    &copy; 2026 Be Ahead <br>
-
-    Developed by
-    <strong>Ayush Tiwary</strong>
-
-  </footer>
-
-
-  <!-- Main JavaScript -->
-  <script src="home.js"></script>
-
-
-  <!-- Arena Button -->
-  <a href="test.html" id="arena-btn">
-    🏆<br>
-    Arena
+<!-- Be Ahead Live -->
+<section class="live-cta">
+  <span class="live-badge">
+    <span class="dot"></span>
+    New
+  </span>
+  <h2>Be Ahead Live</h2>
+  <p>
+    A spoken mock interview where you can interview in different
+    programming languages and receive a detailed AI-generated
+    progress report. Test yourself and prepare for future technical
+    interviews.
+  </p>
+  <a href="interview.html" class="live-btn">
+    Start a Live Interview →
   </a>
+</section>
 
-
-  <!-- Bug Hunter Button -->
-  <a href="bughunter.html" id="bughunter-btn">
-    🐛 Bug Hunter
-  </a>
-
-
-  <!-- Be AI -->
-  <div id="beai-chatbot">
-    Be AI
+<!-- Why Be Ahead -->
+<section class="why">
+  <div class="why-box">
+    <h2 class="why-heading">
+      Why Be Ahead?
+    </h2>
+    <p>
+      ⭐ Learn by doing, not just reading — real tools, real practice.
+      🤖 Get instant help from Be AI, sharpen your skills in Arena, squash bugs in Bug Hunter, and prep for the real thing with Be Ahead Live mock interviews.
+      🚀 Move fast, stay curious, and always be ahead.
+      😊 "We don't just teach syntax — we help you bridge the gap between a blank screen and a working application."
+    </p>
   </div>
+</section>
 
-  <div id="beai-window">
+<!-- Footer -->
+<footer>
+  <p>
+    For any queries, please mail us at:
+    <a href="mailto:kumartiwariayush19@gmail.com">
+      kumartiwariayush19@gmail.com
+    </a>
+  </p>
+  <p>
+    <a href="index.html" class="footer-link">
+      Sign In / Sign Up
+    </a>
+  </p>
+  <hr
+    style="
+      width: 50px;
+      border: 0;
+      border-top: 1px solid #32cd32;
+      margin: 15px auto;
+    "
+  >
+  &copy; 2026 Be Ahead <br>
+  Developed by
+  <strong>Ayush Tiwary</strong>
+</footer>
 
-    <div id="beai-header">
-      BeAI
-    </div>
+<!-- Motion (animation library) -->
+<script src="https://cdn.jsdelivr.net/npm/motion@11/dist/motion.js"></script>
+<script src="animations.js"></script>
 
-    <div id="beai-messages"></div>
+<!-- Main JavaScript -->
+<script src="home.js"></script>
 
-    <input
-      id="beai-input"
-      type="text"
-      placeholder="Ask BeAI..."
-    />
+<!-- Arena Button -->
+<a href="test.html" id="arena-btn">
+  🏆<br>
+  Arena
+</a>
 
+<!-- Bug Hunter Button -->
+<a href="bughunter.html" id="bughunter-btn">
+  🐛 Bug Hunter
+</a>
+
+<!-- Be AI -->
+<div id="beai-chatbot">
+  Be AI
+</div>
+<div id="beai-window">
+  <div id="beai-header">
+    BeAI
   </div>
-
-  <script src="beai.js"></script>
+  <div id="beai-messages"></div>
+  <input
+    id="beai-input"
+    type="text"
+    placeholder="Ask BeAI..."
+  />
+</div>
+<script src="beai.js"></script>
 
 </body>
 </html>
