@@ -107,6 +107,46 @@ body {
   }
 }
 
+/* Ambient background drift — position/scale only, same colors */
+@keyframes drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, 40px) scale(1.06); }
+}
+
+@keyframes drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-35px, -25px) scale(1.05); }
+}
+
+@keyframes drift-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -30px) scale(1.08); }
+}
+
+.aurora-bg span:nth-child(1) {
+  animation: drift-a 22s ease-in-out infinite;
+}
+
+.aurora-bg span:nth-child(2) {
+  animation: drift-b 26s ease-in-out infinite;
+}
+
+.aurora-bg span:nth-child(3) {
+  animation: drift-c 19s ease-in-out infinite;
+}
+
+.aurora-planet {
+  animation: drift-b 30s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-bg span,
+  .aurora-planet,
+  .aurora-bg::before {
+    animation: none;
+  }
+}
+
 body::after {
   content: "";
   position: fixed;
@@ -251,10 +291,21 @@ header {
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease,
-    border-color 0.25s ease;
+    border-color 0.25s ease,
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 
   position: relative;
   overflow: hidden;
+
+  /* Scroll-reveal: hidden until JS adds .is-visible on intersection */
+  opacity: 0;
+  transform: translateY(36px);
+}
+
+.language-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
   /* Premium glass/neon design */
   background: rgba(10, 15, 35, 0.72);
@@ -506,10 +557,20 @@ header {
 
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16);
 
+  /* Scroll-reveal: hidden until JS adds .is-visible on intersection */
+  opacity: 0;
+  transform: translateY(36px);
+
   transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.25s ease,
     box-shadow 0.25s ease,
     background 0.25s ease;
+}
+
+.why-box.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .why-box:hover {
@@ -906,6 +967,18 @@ footer p {
 
   box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.16);
+
+  /* Scroll-reveal: hidden until JS adds .is-visible on intersection */
+  opacity: 0;
+  transform: translateY(36px);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.live-cta.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .live-cta .live-badge {
