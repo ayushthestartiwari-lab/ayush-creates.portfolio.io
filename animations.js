@@ -2,6 +2,23 @@
 // Uses Motion (https://motion.dev) loaded globally via CDN in home.html.
 // Must load AFTER the Motion <script> tag and BEFORE/independent of home.js.
 
+if (typeof Motion === "undefined") {
+  console.warn("Motion failed to load (CDN blocked or offline) — skipping animations.");
+} else {
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if (prefersReducedMotion) {
+    // Skip motion entirely; elements stay in their default visible state
+    // since none of these animations hide content permanently (no
+    // display:none / visibility:hidden fallback needed here).
+  } else {
+    runAnimations();
+  }
+}
+
+function runAnimations() {
 const { animate, stagger, inView } = Motion;
 
 // ---- Hero: fade + rise on load ----
@@ -67,3 +84,5 @@ const bugBtn = document.querySelector("#bughunter-btn");
     animate(btn, { scale: 1 }, { duration: 0.2, easing: "ease-out" })
   );
 });
+
+} // end runAnimations
