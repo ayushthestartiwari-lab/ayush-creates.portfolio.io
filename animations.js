@@ -2,10 +2,20 @@
 // Uses Motion (https://motion.dev) loaded globally via CDN in home.html.
 // Must load AFTER the Motion <script> tag.
 //
+// INITIALIZATION ORDER
+// Everything in this file — constants, config, and every function — is
+// declared BEFORE the code at the bottom that actually decides whether
+// to run any of it. `const` bindings are not hoisted the way function
+// declarations are: they exist in the temporal dead zone until their
+// declaration line runs, so anything that reads them has to appear
+// after that line, top-to-bottom, no exceptions. The trigger logic
+// (Motion feature-check → reduced-motion check → runAnimations()) is
+// the very last thing in the file for exactly this reason.
+//
 // ARCHITECTURE
-// Two independent systems share this file, and they are kept strictly
-// separate so they never write to the same property on the same element
-// at the same time:
+// Two independent systems share this file, kept strictly separate so
+// they never write to the same property on the same element at the
+// same time:
 //
 //   1. Reveal system (.language-card, .live-cta, .why-box)
 //      100% CSS-driven. This script only ever toggles the ".is-visible"
@@ -16,35 +26,29 @@
 //      transition-delay rule existing in style.css.
 //
 //   2. Motion-driven animations (hero, images, aurora layers, buttons,
-//      cards) — everything else. Each element is only ever animated by
-//      ONE Motion call for a given property at a given time; where an
-//      element has both an entrance animation and a continuous
-//      scroll-linked one (the coding images), the scroll-linked one is
-//      deferred until the entrance has fully finished.
+//      cards) — everything else. Where an element has both an entrance
+//      animation and a continuous scroll-linked one (the coding
+//      images), the scroll-linked one is deferred until the entrance
+//      has fully finished, so the two never fight over `transform`.
 //
-// Every phase below is wrapped so a failure in one (missing element,
-// older Motion build without scroll()/inView(), etc.) can't take down
-// the rest of the script.
+// Every phase in runAnimations() is wrapped so a failure in one
+// (missing element, older Motion build without scroll()/inView(),
+// etc.) can't take down the rest of the script.
 
-if (typeof Motion === "undefined") {
-  console.warn("Motion failed to load (CDN blocked or offline) — falling back to plain reveal.");
-  revealImmediately();
-} else {
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
+// ---- Constants (must exist before runAnimations() can be called) ----
 
-  if (prefersReducedMotion) {
-    // Reveal immediately, no animation — CSS's own reduced-motion
-    // handling on .aurora-bg/.aurora-planet covers the background, and
-    // skipping the hero/image entrance calls is safe because those
-    // elements aren't hidden by default in CSS (their keyframes force
-    // an opacity:0 start, they aren't hidden at rest).
-    revealImmediately();
-  } else {
-    runAnimations();
-  }
-}
+// Springs are reserved for direct user interaction (hover/press) —
+// everything time- or scroll-driven uses a plain easing curve, which is
+// both cheaper and reads as more "premium/controlled" than a spring
+// would for passive motion.
+const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 };
+const SPRING_SNAPPY = { type: "spring", stiffness: 420, damping: 26, mass: 0.6 };
+const EASE_OUT_EXPO = [0.22, 1, 0.36, 1];
+const IS_NARROW_VIEWPORT = window.matchMedia("(max-width: 640px)").matches;
+
+// ---- Functions (declarations are hoisted, but kept below the
+// constants above for readability — they're only ever called after
+// the trigger block at the bottom runs anyway) ----
 
 function revealImmediately() {
   document
@@ -52,14 +56,14 @@ function revealImmediately() {
     .forEach((el) => el.classList.add("is-visible"));
 }
 
-// Shared motion language. Springs are reserved for direct user
-// interaction (hover/press) — everything time- or scroll-driven uses a
-// plain easing curve, which is both cheaper and reads as more
-// "premium/controlled" than a spring would for passive motion.
-const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 };
-const SPRING_SNAPPY = { type: "spring", stiffness: 420, damping: 26, mass: 0.6 };
-const EASE_OUT_EXPO = [0.22, 1, 0.36, 1];
-const IS_NARROW_VIEWPORT = window.matchMedia("(max-width: 640px)").matches;
+function safely(fn) {
+  try {
+    return fn();
+  } catch (err) {
+    console.warn("Animation phase skipped:", err);
+    return null;
+  }
+}
 
 function runAnimations() {
   const { animate, stagger, inView, scroll } = Motion;
@@ -83,21 +87,15 @@ function runAnimations() {
   // Each phase is independent and defensively isolated: a missing
   // element is already a no-op inside each function, but this also
   // catches a genuinely missing/older Motion API (e.g. no scroll())
-  // without letting it cancel the rest of the animation system.
+  // without letting it cancel the rest of the animation system. This
+  // is unrelated to — and does not paper over — the initialization-
+  // order bug above; it only guards against optional-feature absence
+  // at runtime, which is a different failure mode.
   safely(() => animateHero(animate, dom));
   const imagesEntrance = safely(() => animateCodingImages(animate, stagger, dom));
   safely(() => setupScrollReveal(inView, stagger, dom));
   safely(() => setupScrollDepth(animate, scroll, dom, imagesEntrance));
   safely(() => setupMicroInteractions(animate, dom));
-}
-
-function safely(fn) {
-  try {
-    return fn();
-  } catch (err) {
-    console.warn("Animation phase skipped:", err);
-    return null;
-  }
 }
 
 // ---- Hero: fade + rise on load ----
@@ -263,4 +261,28 @@ function setupMicroInteractions(animate, { arenaBtn, bugBtn, languageCards }) {
       animate(card, { y: 0, scale: 1 }, SPRING)
     );
   });
+}
+
+// ---- Trigger (must be the LAST thing in the file — everything above
+// this line, including SPRING/EASE_OUT_EXPO/IS_NARROW_VIEWPORT, has to
+// already be initialized before this can safely call runAnimations()) ----
+
+if (typeof Motion === "undefined") {
+  console.warn("Motion failed to load (CDN blocked or offline) — falling back to plain reveal.");
+  revealImmediately();
+} else {
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if (prefersReducedMotion) {
+    // Reveal immediately, no animation — CSS's own reduced-motion
+    // handling on .aurora-bg/.aurora-planet covers the background, and
+    // skipping the hero/image entrance calls is safe because those
+    // elements aren't hidden by default in CSS (their keyframes force
+    // an opacity:0 start, they aren't hidden at rest).
+    revealImmediately();
+  } else {
+    runAnimations();
+  }
 }
