@@ -1,59 +1,21 @@
-// animations.js
-// Uses Motion (https://motion.dev) loaded globally via CDN in home.html.
-// Must load AFTER the Motion <script> tag.
-//
-// INITIALIZATION ORDER
-// Everything in this file — constants, config, and every function — is
-// declared BEFORE the code at the bottom that actually decides whether
-// to run any of it. `const` bindings are not hoisted the way function
-// declarations are: they exist in the temporal dead zone until their
-// declaration line runs, so anything that reads them has to appear
-// after that line, top-to-bottom, no exceptions. The trigger logic
-// (Motion feature-check → reduced-motion check → runAnimations()) is
-// the very last thing in the file for exactly this reason.
-//
-// ARCHITECTURE
-// Two independent systems share this file, kept strictly separate so
-// they never write to the same property on the same element at the
-// same time:
-//
-//   1. Reveal system (.language-card, .live-cta, .why-box)
-//      100% CSS-driven. This script only ever toggles the ".is-visible"
-//      class — it never touches these elements' opacity/transform via
-//      Motion. The stagger between siblings is computed in JS (via
-//      Motion's stagger()) and applied as a per-element setTimeout
-//      before the class is added, so nothing here depends on any
-//      transition-delay rule existing in style.css.
-//
-//   2. Motion-driven animations (hero, images, aurora layers, buttons,
-//      cards) — everything else. Where an element has both an entrance
-//      animation and a continuous scroll-linked one (the coding
-//      images), the scroll-linked one is deferred until the entrance
-//      has fully finished, so the two never fight over `transform`.
-//
-// Every phase in runAnimations() is wrapped so a failure in one
-// (missing element, older Motion build without scroll()/inView(),
-// etc.) can't take down the rest of the script.
+// ========================================
+// BE AHEAD — PREMIUM UPGRADED ANIMATIONS
+// Modern 3D/Scroll-driven Interactive UI
+// Uses Motion (https://motion.dev) loaded globally via CDN
+// ========================================
 
-// ---- Constants (must exist before runAnimations() can be called) ----
-
-// Springs are reserved for direct user interaction (hover/press) —
-// everything time- or scroll-driven uses a plain easing curve, which is
-// both cheaper and reads as more "premium/controlled" than a spring
-// would for passive motion.
+// ---- Constants ----
 const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 };
 const SPRING_SNAPPY = { type: "spring", stiffness: 420, damping: 26, mass: 0.6 };
 const EASE_OUT_EXPO = [0.22, 1, 0.36, 1];
+const EASE_OUT_CUBIC = [0.33, 1, 0.68, 1];
 const IS_NARROW_VIEWPORT = window.matchMedia("(max-width: 640px)").matches;
+const SUPPORTS_HOVER = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+const PREFERS_REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// ---- Functions (declarations are hoisted, but kept below the
-// constants above for readability — they're only ever called after
-// the trigger block at the bottom runs anyway) ----
-
+// ---- Utility Functions ----
 function revealImmediately() {
-  document
-    .querySelectorAll(".language-card, .live-cta, .why-box")
-    .forEach((el) => el.classList.add("is-visible"));
+  document.querySelectorAll(".language-card, .live-cta, .why-box").forEach((el) => el.classList.add("is-visible"));
 }
 
 function safely(fn) {
@@ -65,169 +27,101 @@ function safely(fn) {
   }
 }
 
+// ---- Main Animation Runner ----
 function runAnimations() {
   const { animate, stagger, inView, scroll } = Motion;
 
-  // Query once, reuse everywhere — avoids repeating the same
-  // querySelectorAll across independent phases.
   const dom = {
+    hero: document.querySelector(".hero"),
     heroTitle: document.querySelector(".hero h1"),
     heroQuote: document.querySelector(".hero .quote"),
-    hero: document.querySelector(".hero"),
     images: document.querySelectorAll(".images img"),
     languageCards: document.querySelectorAll(".language-card"),
     liveCta: document.querySelectorAll(".live-cta"),
     whyBox: document.querySelectorAll(".why-box"),
     auroraBg: document.querySelector(".aurora-bg"),
     auroraPlanets: document.querySelectorAll(".aurora-planet"),
+    auroraFloaters: document.querySelectorAll(".aurora-floater"),
     arenaBtn: document.querySelector("#arena-btn"),
     bugBtn: document.querySelector("#bughunter-btn"),
+    beaiChatbot: document.querySelector("#beai-chatbot"),
+    liveBtn: document.querySelector(".live-cta a.live-btn"),
+    enhancerBtn: document.querySelector("#enhancer-btn"),
   };
 
-  // Each phase is independent and defensively isolated: a missing
-  // element is already a no-op inside each function, but this also
-  // catches a genuinely missing/older Motion API (e.g. no scroll())
-  // without letting it cancel the rest of the animation system. This
-  // is unrelated to — and does not paper over — the initialization-
-  // order bug above; it only guards against optional-feature absence
-  // at runtime, which is a different failure mode.
-  safely(() => animateHero(animate, dom));
-  const imagesEntrance = safely(() => animateCodingImages(animate, stagger, dom));
+  safely(() => animateHeroEntrance(animate, dom));
+  const imagesEntrance = safely(() => animateImagesEntrance(animate, stagger, dom));
   safely(() => setupScrollReveal(inView, stagger, dom));
   safely(() => setupScrollDepth(animate, scroll, dom, imagesEntrance));
-  safely(() => setupMicroInteractions(animate, dom));
+  safely(() => setupHeroParallax(animate, dom));
+  safely(() => setupCardTilt(dom));
+  safely(() => setupMagneticButtons(animate, dom));
+  safely(() => setupBackgroundMotion(animate, dom));
 }
 
-// ---- Hero: fade + rise on load ----
-function animateHero(animate, { heroTitle, heroQuote }) {
+// 1. HERO ENTRANCE
+function animateHeroEntrance(animate, { heroTitle, heroQuote }) {
   if (heroTitle) {
-    animate(
-      heroTitle,
-      { opacity: [0, 1], y: [30, 0] },
-      { duration: 0.8, easing: EASE_OUT_EXPO }
-    );
+    animate(heroTitle, { opacity: [0, 1], y: [40, 0], scale: [0.96, 1] }, { duration: 0.9, easing: EASE_OUT_EXPO });
   }
   if (heroQuote) {
-    animate(
-      heroQuote,
-      { opacity: [0, 1], y: [20, 0] },
-      { duration: 0.7, delay: 0.25, easing: EASE_OUT_EXPO }
-    );
+    animate(heroQuote, { opacity: [0, 1], y: [28, 0], scale: [0.97, 1] }, { duration: 0.8, delay: 0.28, easing: EASE_OUT_EXPO });
   }
 }
 
-// ---- Coding images: fade in on load ----
-// Returns the animation controls so the scroll-depth phase can wait for
-// `.finished` before it ever touches these same elements' transform —
-// see setupScrollDepth for why that matters.
-function animateCodingImages(animate, stagger, { images }) {
+// 2. IMAGES ENTRANCE
+function animateImagesEntrance(animate, stagger, { images }) {
   if (!images.length) return null;
-  return animate(
-    images,
-    { opacity: [0, 1], scale: [0.96, 1], y: [12, 0] },
-    {
-      duration: 0.7,
-      delay: stagger(0.15, { startDelay: 0.3 }),
-      easing: EASE_OUT_EXPO,
-    }
-  );
+  return animate(images, { opacity: [0, 1], scale: [0.94, 1], y: [16, 0] }, { duration: 0.8, delay: stagger(0.14, { startDelay: 0.35 }), easing: EASE_OUT_EXPO });
 }
 
-// ---- Scroll reveal: language cards, Be Ahead Live, Why Be Ahead ----
-// Deliberately does not call Motion's animate() on these elements at
-// all. The opacity/transform transition is entirely CSS's job (a
-// ".is-visible" class flip); this only decides *when* each element's
-// class flips. Watching the first element of a group is enough to know
-// the group has reached the viewport — each sibling's class is then
-// added on its own JS-computed delay (via Motion's stagger, called
-// directly as a plain function rather than passed to animate) so the
-// group visibly cascades in without any transition-delay CSS required.
+// 3. SCROLL REVEAL
 function setupScrollReveal(inView, stagger, { languageCards, liveCta, whyBox }) {
   const groups = [languageCards, liveCta, whyBox];
-  const delayFor = stagger(0.08);
-
+  const delayFor = stagger(0.09);
   groups.forEach((elements) => {
     if (!elements.length) return;
-
-    const stop = inView(
-      elements[0],
-      () => {
-        elements.forEach((el, i) => {
-          const delaySeconds = elements.length > 1 ? delayFor(i, elements.length) : 0;
-          setTimeout(() => el.classList.add("is-visible"), delaySeconds * 1000);
-        });
-        stop();
-      },
-      { margin: "0px 0px -10% 0px" }
-    );
+    const stop = inView(elements[0], () => {
+      elements.forEach((el, i) => {
+        const delaySeconds = elements.length > 1 ? delayFor(i, elements.length) : 0;
+        setTimeout(() => el.classList.add("is-visible"), delaySeconds * 1000);
+      });
+      stop();
+    }, { margin: "0px 0px -12% 0px" });
   });
 }
 
-// ---- Scroll depth: continuous, scroll-progress-linked motion for the
-// hero and decorative background layers. Bound directly to scroll
-// position via Motion's scroll(), so it plays forward/backward in sync
-// with the scrollbar automatically — no separate reverse handling
-// needed. Skipped on narrow viewports: the parallax range is barely
-// visible on a small screen and isn't worth the continuous scroll work
-// on typically weaker hardware.
-function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, images }, imagesEntrance) {
-  if (typeof scroll !== "function" || IS_NARROW_VIEWPORT) return;
-
-  // Hero content recedes as the page scrolls past it — foreground
-  // layer of the depth stack. Targets the .hero container itself,
-  // never the h1/quote the load-in animation already owns, so the two
-  // systems never compete for the same element's transform.
+// 4. SCROLL DEPTH
+function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, auroraFloaters, images }, imagesEntrance) {
+  if (typeof scroll !== "function" || IS_NARROW_VIEWPORT || PREFERS_REDUCED_MOTION) return;
+  
   if (hero) {
-    scroll(
-      animate(
-        hero,
-        { opacity: [1, 1, 0.35], y: ["0%", "0%", "-8%"], scale: [1, 1, 0.97] },
-        { easing: "linear" }
-      ),
-      { target: hero, offset: ["start start", "35% start", "end start"] }
-    );
+    scroll(animate(hero, { opacity: [1, 1, 0.4], y: ["0%", "0%", "-10%"], scale: [1, 1, 0.96] }, { easing: "linear" }), { target: hero, offset: ["start start", "35% start", "end start"] });
   }
-
-  // Background aurora glow: slower, further-back layer.
+  
   if (auroraBg) {
-    scroll(
-      animate(auroraBg, { y: ["0%", "20%"], opacity: [1, 0.6] }, { easing: "linear" }),
-      { target: auroraBg, offset: ["start start", "end start"] }
-    );
+    scroll(animate(auroraBg, { y: ["0%", "18%"], opacity: [1, 0.7] }, { easing: "linear" }), { target: auroraBg, offset: ["start start", "end start"] });
   }
-
-  // Each planet drifts at its own rate/scale so the group reads as
-  // layered depth rather than one flat background.
+  
   auroraPlanets.forEach((planet, i) => {
-    const rate = 10 + i * 6;
-    scroll(
-      animate(
-        planet,
-        { y: ["0%", `${rate}%`], scale: [1, 1 + i * 0.03] },
-        { easing: "linear" }
-      ),
-      { target: planet, offset: ["start end", "end start"] }
-    );
+    const rate = 12 + i * 7;
+    scroll(animate(planet, { y: ["0%", rate + "%"], scale: [1, 1 + i * 0.035] }, { easing: "linear" }), { target: planet, offset: ["start end", "end start"] });
   });
-
-  // Coding images: a subtle continuous drift as the section transits
-  // the viewport. This targets the same elements and the same `y`
-  // value as the load-in entrance above, so it's only ever attached
-  // after that entrance's `.finished` promise resolves — otherwise the
-  // two animations would both be writing to `transform` on the same
-  // images at the same time. If the entrance didn't run (or already
-  // settled) the attachment happens immediately instead.
+  
+  if (auroraFloaters.length) {
+    auroraFloaters.forEach((floater, i) => {
+      const rate = 8 + i * 5;
+      scroll(animate(floater, { y: ["0%", rate + "%"] }, { easing: "linear" }), { target: floater, offset: ["start end", "end start"] });
+    });
+  }
+  
   if (images.length) {
     const attachImageDepth = () => {
       images.forEach((img, i) => {
-        const rate = 6 + (i % 3) * 4;
-        scroll(
-          animate(img, { y: ["0%", `${rate}%`] }, { easing: "linear" }),
-          { target: img, offset: ["start end", "end start"] }
-        );
+        const rate = 7 + (i % 3) * 4;
+        scroll(animate(img, { y: ["0%", rate + "%"] }, { easing: "linear" }), { target: img, offset: ["start end", "end start"] });
       });
     };
-
     if (imagesEntrance && imagesEntrance.finished) {
       imagesEntrance.finished.then(attachImageDepth).catch(attachImageDepth);
     } else {
@@ -236,51 +130,149 @@ function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, imag
   }
 }
 
-// ---- Micro-interactions: spring-based hover/press feedback.
-// Gated on (hover: hover) and (pointer: fine) so touch devices never
-// get a hover state stuck on after a tap. ----
-function setupMicroInteractions(animate, { arenaBtn, bugBtn, languageCards }) {
-  const supportsHover = window.matchMedia(
-    "(hover: hover) and (pointer: fine)"
-  ).matches;
-  if (!supportsHover) return;
+// 5. HERO PARALLAX
+function setupHeroParallax(animate, { hero, heroTitle, heroQuote }) {
+  if (IS_NARROW_VIEWPORT || PREFERS_REDUCED_MOTION || !SUPPORTS_HOVER || !hero) return;
+  
+  const heroRect = hero.getBoundingClientRect();
+  const heroCenterX = heroRect.left + heroRect.width / 2;
+  const heroCenterY = heroRect.top + heroRect.height / 2;
+  let currentX = 0, currentY = 0, targetX = 0, targetY = 0, animationFrame = null;
+  
+  function updateParallax() {
+    if (heroTitle) heroTitle.style.transform = "translate(" + (currentX * 0.3) + "px, " + (currentY * 0.3) + "px) translateZ(20px)";
+    if (heroQuote) heroQuote.style.transform = "translate(" + (currentX * 0.5) + "px, " + (currentY * 0.5) + "px) translateZ(10px)";
+    animationFrame = null;
+  }
+  
+  function onPointerMove(e) {
+    const deltaX = (e.clientX - heroCenterX) / heroRect.width;
+    const deltaY = (e.clientY - heroCenterY) / heroRect.height;
+    targetX = deltaX * 25;
+    targetY = deltaY * 25;
+    if (!animationFrame) {
+      animationFrame = requestAnimationFrame(() => {
+        currentX += (targetX - currentX) * 0.12;
+        currentY += (targetY - currentY) * 0.12;
+        updateParallax();
+      });
+    }
+  }
+  
+  function onPointerLeave() {
+    targetX = 0;
+    targetY = 0;
+    if (!animationFrame) {
+      animationFrame = requestAnimationFrame(() => {
+        const animateReturn = () => {
+          currentX *= 0.92;
+          currentY *= 0.92;
+          updateParallax();
+          if (Math.abs(currentX) > 0.5 || Math.abs(currentY) > 0.5) requestAnimationFrame(animateReturn);
+          else animationFrame = null;
+        };
+        animateReturn();
+      });
+    }
+  }
+  
+  hero.addEventListener("pointermove", onPointerMove);
+  hero.addEventListener("pointerleave", onPointerLeave);
+}
 
-  [arenaBtn, bugBtn].forEach((btn) => {
-    if (!btn) return;
-    btn.addEventListener("mouseenter", () => animate(btn, { scale: 1.08 }, SPRING));
-    btn.addEventListener("mouseleave", () => animate(btn, { scale: 1 }, SPRING));
-    btn.addEventListener("mousedown", () => animate(btn, { scale: 0.97 }, SPRING_SNAPPY));
-    btn.addEventListener("mouseup", () => animate(btn, { scale: 1.08 }, SPRING_SNAPPY));
-  });
-
+// 6. CARD TILT
+function setupCardTilt({ languageCards }) {
+  if (IS_NARROW_VIEWPORT || PREFERS_REDUCED_MOTION || !SUPPORTS_HOVER) return;
+  
   languageCards.forEach((card) => {
-    card.addEventListener("mouseenter", () =>
-      animate(card, { y: -6, scale: 1.015 }, SPRING)
-    );
-    card.addEventListener("mouseleave", () =>
-      animate(card, { y: 0, scale: 1 }, SPRING)
-    );
+    let currentRotateX = 0, currentRotateY = 0, targetRotateX = 0, targetRotateY = 0, animationFrame = null;
+    
+    function updateTilt() {
+      card.style.transform = "perspective(1000px) rotateX(" + currentRotateX + "deg) rotateY(" + currentRotateY + "deg) translateZ(8px)";
+      animationFrame = null;
+    }
+    
+    function onPointerMove(e) {
+      const rect = card.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const deltaX = (e.clientX - centerX) / (rect.width / 2);
+      const deltaY = (e.clientY - centerY) / (rect.height / 2);
+      targetRotateY = deltaX * 6;
+      targetRotateX = -deltaY * 6;
+      if (!animationFrame) {
+        animationFrame = requestAnimationFrame(() => {
+          currentRotateX += (targetRotateX - currentRotateX) * 0.15;
+          currentRotateY += (targetRotateY - currentRotateY) * 0.15;
+          updateTilt();
+        });
+      }
+    }
+    
+    function onPointerLeave() {
+      targetRotateX = 0;
+      targetRotateY = 0;
+      if (!animationFrame) {
+        animationFrame = requestAnimationFrame(() => {
+          const animateReturn = () => {
+            currentRotateX *= 0.88;
+            currentRotateY *= 0.88;
+            updateTilt();
+            if (Math.abs(currentRotateX) > 0.3 || Math.abs(currentRotateY) > 0.3) requestAnimationFrame(animateReturn);
+            else {
+              animationFrame = null;
+              card.style.transform = "";
+            }
+          };
+          animateReturn();
+        });
+      }
+    }
+    
+    card.addEventListener("pointermove", onPointerMove);
+    card.addEventListener("pointerleave", onPointerLeave);
   });
 }
 
-// ---- Trigger (must be the LAST thing in the file — everything above
-// this line, including SPRING/EASE_OUT_EXPO/IS_NARROW_VIEWPORT, has to
-// already be initialized before this can safely call runAnimations()) ----
+// 7. MAGNETIC BUTTONS
+function setupMagneticButtons(animate, { arenaBtn, bugBtn, liveBtn, enhancerBtn, beaiChatbot }) {
+  if (!SUPPORTS_HOVER || PREFERS_REDUCED_MOTION) return;
+  
+  const buttons = [arenaBtn, bugBtn, liveBtn, enhancerBtn, beaiChatbot].filter(Boolean);
+  
+  buttons.forEach((btn) => {
+    btn.addEventListener("mouseenter", () => animate(btn, { scale: 1.08, y: -3 }, { ...SPRING, duration: 0.35 }));
+    btn.addEventListener("mouseleave", () => animate(btn, { scale: 1, y: 0 }, { ...SPRING, duration: 0.35 }));
+    btn.addEventListener("mousedown", () => animate(btn, { scale: 0.96 }, SPRING_SNAPPY));
+    btn.addEventListener("mouseup", () => animate(btn, { scale: 1.08 }, { ...SPRING, duration: 0.3 }));
+  });
+}
 
+// 8. BACKGROUND MOTION
+function setupBackgroundMotion(animate, { auroraBg, auroraPlanets, auroraFloaters }) {
+  if (IS_NARROW_VIEWPORT || PREFERS_REDUCED_MOTION) return;
+  
+  if (auroraBg) {
+    animate(auroraBg, { opacity: [0.85, 1, 0.85] }, { duration: 8, repeat: Infinity, repeatType: "mirror", easing: "ease-in-out" });
+  }
+  
+  auroraPlanets.forEach((planet, i) => {
+    animate(planet, { y: [0, 8 + i * 3, 0], scale: [1, 1.02 + i * 0.01, 1] }, { duration: 6 + i * 2, repeat: Infinity, repeatType: "mirror", easing: "ease-in-out", delay: i * 0.5 });
+  });
+  
+  if (auroraFloaters.length) {
+    auroraFloaters.forEach((floater, i) => {
+      animate(floater, { y: [0, -12 + i * 4, 0], x: [0, 6 - i * 2, 0] }, { duration: 7 + i * 1.5, repeat: Infinity, repeatType: "mirror", easing: "ease-in-out", delay: i * 0.4 });
+    });
+  }
+}
+
+// INITIALIZATION
 if (typeof Motion === "undefined") {
-  console.warn("Motion failed to load (CDN blocked or offline) — falling back to plain reveal.");
+  console.warn("Motion failed to load — falling back to plain reveal.");
   revealImmediately();
 } else {
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
-
-  if (prefersReducedMotion) {
-    // Reveal immediately, no animation — CSS's own reduced-motion
-    // handling on .aurora-bg/.aurora-planet covers the background, and
-    // skipping the hero/image entrance calls is safe because those
-    // elements aren't hidden by default in CSS (their keyframes force
-    // an opacity:0 start, they aren't hidden at rest).
+  if (PREFERS_REDUCED_MOTION) {
     revealImmediately();
   } else {
     runAnimations();
