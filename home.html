@@ -14,23 +14,14 @@ gtag('config', 'G-G5DCS5F9GR');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Be Ahead — Learn, Build & Practice Programming</title>
-<meta
-  name="description"
-  content="Be Ahead is an AI-powered programming platform where you can learn, build, practice coding, take AI mock interviews, play Bug Hunter, and test your skills in Arena."
->
-<meta
-  name="keywords"
-  content="programming, coding, AI, coding practice, programming learning, coding challenges, AI mock interview, programming interview, Be Ahead"
->
+<meta name="description" content="Be Ahead is an AI-powered programming platform where you can learn, build, practice coding, take AI mock interviews, play Bug Hunter, and test your skills in Arena.">
+<meta name="keywords" content="programming, coding, AI, coding practice, programming learning, coding challenges, AI mock interview, programming interview, Be Ahead">
 <meta name="author" content="Ayush Tiwary">
 <meta name="robots" content="index, follow">
 
 <!-- Open Graph / Social Sharing -->
 <meta property="og:title" content="Be Ahead — Learn, Build & Practice Programming">
-<meta
-  property="og:description"
-  content="Learn, build and practice programming with AI-powered tools, coding challenges, mock interviews and more."
->
+<meta property="og:description" content="Learn, build and practice programming with AI-powered tools, coding challenges, mock interviews and more.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://be-ahead.vercel.app/">
 
@@ -38,8 +29,8 @@ gtag('config', 'G-G5DCS5F9GR');
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-<!-- CSS -->
-<link rel="stylesheet" href="style.css">
+<!-- CSS - Use the upgraded stylesheet -->
+<link rel="stylesheet" href="style-upgraded.css">
 
 <style>
 /* Simple nav link styling */
@@ -57,12 +48,12 @@ nav a:hover {
   text-decoration: underline;
 }
 
-/* Nudge BeAI up on this page only, so Arena can sit below it */
+/* Nudge BeAI up on this page only */
 #beai-chatbot {
   bottom: 88px;
 }
 
-/* Floating "Be Ahead Arena" button — compact, sits right under BeAI */
+/* Floating "Be Ahead Arena" button */
 #arena-btn {
   position: fixed;
   bottom: 20px;
@@ -90,7 +81,7 @@ nav a:hover {
   box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
 }
 
-/* Floating "Bug Hunter" button — rectangular, top-right */
+/* Floating "Bug Hunter" button */
 #bughunter-btn {
   position: fixed;
   top: 20px;
@@ -114,9 +105,7 @@ nav a:hover {
   box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7);
 }
 
-/* =========================================
-   LANGUAGE CARD LOGOS
-========================================= */
+/* Language Card Logos */
 .lang-logo {
   width: 58px;
   height: 58px;
@@ -128,14 +117,10 @@ nav a:hover {
   margin-right: 18px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--card-accent);
-  box-shadow:
-    0 0 15px var(--card-glow),
-    inset 0 0 12px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 15px var(--card-glow), inset 0 0 12px rgba(255, 255, 255, 0.04);
   position: relative;
   z-index: 2;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .lang-logo img {
   width: 34px;
@@ -145,12 +130,10 @@ nav a:hover {
 }
 .language-card:hover .lang-logo {
   transform: scale(1.08);
-  box-shadow:
-    0 0 25px var(--card-glow),
-    inset 0 0 12px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 25px var(--card-glow), inset 0 0 12px rgba(255, 255, 255, 0.08);
 }
 
-/* C++ card accent (adjust to match your other .language-card.<lang> rules in style.css) */
+/* C++ card accent */
 .language-card.cpp {
   --card-accent: #00599C;
   --card-glow: rgba(0, 89, 156, 0.5);
@@ -159,12 +142,19 @@ nav a:hover {
 </head>
 <body>
 
-<!-- Aurora Background -->
+<!-- Aurora Background - Enhanced with floaters -->
 <div class="aurora-bg">
   <span></span>
   <span></span>
   <span></span>
   <div class="aurora-planet"></div>
+</div>
+
+<!-- Floating Geometric Elements (Layer 4) -->
+<div class="aurora-floaters">
+  <div class="aurora-floater"></div>
+  <div class="aurora-floater"></div>
+  <div class="aurora-floater"></div>
 </div>
 
 <!-- Header -->
@@ -189,153 +179,89 @@ nav a:hover {
 
 <!-- Coding Images -->
 <section class="images">
-  <img
-    src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop"
-    alt="Programming and coding on a computer"
-  >
-  <img
-    src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop"
-    alt="Code displayed on a computer screen"
-  >
+  <img src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop" alt="Programming and coding on a computer">
+  <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop" alt="Code displayed on a computer screen">
 </section>
 
 <!-- Programming Languages -->
 <section class="languages">
-  <h2 class="section-heading">
-    Programming Languages
-  </h2>
+  <h2 class="section-heading">Programming Languages</h2>
   <div class="card-grid">
 
     <!-- Python -->
     <a href="python.html" class="language-card python">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
-          alt="Python logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python logo">
       </div>
       <div class="lang-info">
         <h3>Python</h3>
-        <p>
-          Basics to Pro
-          <span class="lang-tagline">
-            — automate scripts, build APIs, power AI
-          </span>
-        </p>
+        <p>Basics to Pro <span class="lang-tagline">— automate scripts, build APIs, power AI</span></p>
       </div>
     </a>
 
     <!-- JavaScript -->
     <a href="javascript.html" class="language-card javascript">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
-          alt="JavaScript logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript logo">
       </div>
       <div class="lang-info">
         <h3>JavaScript</h3>
-        <p>
-          Web Dev
-          <span class="lang-tagline">
-            — bring websites to life, from clicks to animations
-          </span>
-        </p>
+        <p>Web Dev <span class="lang-tagline">— bring websites to life, from clicks to animations</span></p>
       </div>
     </a>
 
     <!-- Java -->
     <a href="java.html" class="language-card java">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
-          alt="Java logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" alt="Java logo">
       </div>
       <div class="lang-info">
         <h3>Java</h3>
-        <p>
-          OOP Apps
-          <span class="lang-tagline">
-            — build robust apps trusted by enterprises
-          </span>
-        </p>
+        <p>OOP Apps <span class="lang-tagline">— build robust apps trusted by enterprises</span></p>
       </div>
     </a>
 
     <!-- Go -->
     <a href="go.html" class="language-card go">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg"
-          alt="Go logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg" alt="Go logo">
       </div>
       <div class="lang-info">
         <h3>Go</h3>
-        <p>
-          Backend
-          <span class="lang-tagline">
-            — handle scale with speed and simplicity
-          </span>
-        </p>
+        <p>Backend <span class="lang-tagline">— handle scale with speed and simplicity</span></p>
       </div>
     </a>
 
     <!-- HTML -->
     <a href="html.html" class="language-card html">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg"
-          alt="HTML logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML logo">
       </div>
       <div class="lang-info">
         <h3>HTML</h3>
-        <p>
-          Structure
-          <span class="lang-tagline">
-            — lay the foundation every website stands on
-          </span>
-        </p>
+        <p>Structure <span class="lang-tagline">— lay the foundation every website stands on</span></p>
       </div>
     </a>
 
     <!-- Rust -->
     <a href="rust.html" class="language-card rust">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg"
-          alt="Rust logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg" alt="Rust logo">
       </div>
       <div class="lang-info">
         <h3>Rust</h3>
-        <p>
-          Systems
-          <span class="lang-tagline">
-            — write blazing-fast code without the crashes
-          </span>
-        </p>
+        <p>Systems <span class="lang-tagline">— write blazing-fast code without the crashes</span></p>
       </div>
     </a>
 
     <!-- C++ -->
     <a href="cpp.html" class="language-card cpp">
       <div class="lang-logo">
-        <img
-          src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg"
-          alt="C++ logo"
-        >
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" alt="C++ logo">
       </div>
       <div class="lang-info">
         <h3>C++</h3>
-        <p>
-          Competitive Programming
-          <span class="lang-tagline">
-            — master the language behind speed and DSA mastery
-          </span>
-        </p>
+        <p>Competitive Programming <span class="lang-tagline">— master the language behind speed and DSA mastery</span></p>
       </div>
     </a>
 
@@ -349,90 +275,50 @@ nav a:hover {
     New
   </span>
   <h2>Be Ahead Live</h2>
-  <p>
-    A spoken mock interview where you can interview in different
-    programming languages and receive a detailed AI-generated
-    progress report. Test yourself and prepare for future technical
-    interviews.
-  </p>
-  <a href="interview.html" class="live-btn">
-    Start a Live Interview →
-  </a>
+  <p>A spoken mock interview where you can interview in different programming languages and receive a detailed AI-generated progress report. Test yourself and prepare for future technical interviews.</p>
+  <a href="interview.html" class="live-btn">Start a Live Interview →</a>
 </section>
 
 <!-- Why Be Ahead -->
 <section class="why">
   <div class="why-box">
-    <h2 class="why-heading">
-      Why Be Ahead?
-    </h2>
-    <p>
-      ⭐ Learn by doing, not just reading — real tools, real practice.
-      🤖 Get instant help from Be AI, sharpen your skills in Arena, squash bugs in Bug Hunter, and prep for the real thing with Be Ahead Live mock interviews.
-      🚀 Move fast, stay curious, and always be ahead.
-      😊 "We don't just teach syntax — we help you bridge the gap between a blank screen and a working application."
-    </p>
+    <h2 class="why-heading">Why Be Ahead?</h2>
+    <p>⭐ Learn by doing, not just reading — real tools, real practice.<br>
+    🤖 Get instant help from Be AI, sharpen your skills in Arena, squash bugs in Bug Hunter, and prep for the real thing with Be Ahead Live mock interviews.<br>
+    🚀 Move fast, stay curious, and always be ahead.<br>
+    😊 "We don't just teach syntax — we help you bridge the gap between a blank screen and a working application."</p>
   </div>
 </section>
 
 <!-- Footer -->
 <footer>
-  <p>
-    For any queries, please mail us at:
-    <a href="mailto:kumartiwariayush19@gmail.com">
-      kumartiwariayush19@gmail.com
-    </a>
-  </p>
-  <p>
-    <a href="index.html" class="footer-link">
-      Sign In / Sign Up
-    </a>
-  </p>
-  <hr
-    style="
-      width: 50px;
-      border: 0;
-      border-top: 1px solid #32cd32;
-      margin: 15px auto;
-    "
-  >
+  <p>For any queries, please mail us at: <a href="mailto:kumartiwariayush19@gmail.com">kumartiwariayush19@gmail.com</a></p>
+  <p><a href="index.html" class="footer-link">Sign In / Sign Up</a></p>
+  <hr style="width: 50px; border: 0; border-top: 1px solid #32cd32; margin: 15px auto;">
   &copy; 2026 Be Ahead <br>
-  Developed by
-  <strong>Ayush Tiwary</strong>
+  Developed by <strong>Ayush Tiwary</strong>
 </footer>
 
 <!-- Motion (animation library) -->
 <script src="https://cdn.jsdelivr.net/npm/motion@11/dist/motion.js" defer></script>
-<script src="animations.js" defer></script>
+<!-- Use the upgraded animations file -->
+<script src="animations-upgraded.js" defer></script>
 
 <!-- Main JavaScript -->
 <script src="home.js"></script>
 
 <!-- Arena Button -->
-<a href="test.html" id="arena-btn">
-  🏆<br>
-  Arena
-</a>
+<a href="test.html" id="arena-btn">🏆<br>Arena</a>
 
 <!-- Bug Hunter Button -->
-<a href="bughunter.html" id="bughunter-btn">
-  🐛 Bug Hunter
-</a>
+<a href="bughunter.html" id="bughunter-btn">🐛 Bug Hunter</a>
 
 <!-- Be AI -->
-<div id="beai-chatbot">
-  Be AI
-</div>
+<div id="beai-chatbot">Be AI</div>
 <div id="beai-window">
-  <div id="beai-header">
-    BeAI
-  </div>
+  <div id="beai-header">BeAI</div>
   <div id="beai-messages"></div>
-  <input
-    id="beai-input"
-    type="text"
-    placeholder="Ask BeAI..."
-  />
+  <input id="beai-input" type="text" placeholder="Ask BeAI..." />
 </div>
 <script src="beai.js"></script>
 
