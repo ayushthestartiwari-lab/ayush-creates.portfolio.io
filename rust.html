@@ -13,22 +13,46 @@
   <title>Rust Learning - Be Ahead</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Manrope:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="be.css">
 </head>
 <body>
-  <header>
-    <img src="logo.jpg" alt="Logo" class="logo-overlay">
-    <h1 class="site-title">Rust</h1>
-    <nav style="margin-top: 10px;">
-      <a href="home.html" style="color: white; margin-right: 15px; text-decoration: none;">← Back to Home</a>
-      <a href="python.html" style="color: white; margin-right: 15px; text-decoration: none;">Python</a>
-      <a href="javascript.html" style="color: white; margin-right: 15px; text-decoration: none;">JavaScript</a>
-      <a href="java.html" style="color: white; margin-right: 15px; text-decoration: none;">Java</a>
-      <a href="go.html" style="color: white; margin-right: 15px; text-decoration: none;">Go</a>
-      <a href="html.html" style="color: white; text-decoration: none;">HTML</a>
+  <header class="site-header">
+  <div class="header-inner">
+    <a href="home.html" class="brand">
+      <img src="logo.jpg" alt="" class="brand-logo">
+      <span class="brand-name">Be Ahead</span>
+    </a>
+
+    <nav class="main-nav" id="main-nav">
+      <a href="home.html">Home</a>
+      <a href="python.html">Python</a>
+      <a href="javascript.html">JavaScript</a>
+      <a href="java.html">Java</a>
+      <a href="go.html">Go</a>
+      <a href="html.html">HTML</a>
+      <a href="rust.html" aria-current="page">Rust</a>
+      <a href="cpp.html">C++</a>
     </nav>
-  </header>
+
+    <div class="header-actions">
+      <a href="index.html" class="nav-cta">Sign In</a>
+      <button
+        type="button"
+        class="nav-toggle"
+        id="nav-toggle"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="main-nav"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
 
   <section class="hero">
     <h1>Learn Rust</h1>
@@ -125,6 +149,7 @@ async fn main() -> std::io::Result<()> {
     <input id="beai-input" type="text" placeholder="Ask BeAI..." />
   </div>
 
+  <script src="nav.js" defer></script>
   <script src="beai.js"></script>
 </body>
 </html>
