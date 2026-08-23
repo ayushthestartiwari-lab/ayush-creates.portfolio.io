@@ -25,11 +25,12 @@
 //      before the class is added, so nothing here depends on any
 //      transition-delay rule existing in style.css.
 //
-//   2. Motion-driven animations (hero, images, aurora layers, buttons,
-//      cards) — everything else. Where an element has both an entrance
-//      animation and a continuous scroll-linked one (the coding
-//      images), the scroll-linked one is deferred until the entrance
-//      has fully finished, so the two never fight over `transform`.
+//   2. Motion-driven animations (hero, images, geometric background
+//      layers, buttons, cards) — everything else. Where an element
+//      has both an entrance animation and a continuous scroll-linked
+//      one (the coding images), the scroll-linked one is deferred
+//      until the entrance has fully finished, so the two never fight
+//      over `transform`.
 //
 // Every phase in runAnimations() is wrapped so a failure in one
 // (missing element, older Motion build without scroll()/inView(),
@@ -78,8 +79,9 @@ function runAnimations() {
     languageCards: document.querySelectorAll(".language-card"),
     liveCta: document.querySelectorAll(".live-cta"),
     whyBox: document.querySelectorAll(".why-box"),
-    auroraBg: document.querySelector(".aurora-bg"),
-    auroraPlanets: document.querySelectorAll(".aurora-planet"),
+    geoBack: document.querySelectorAll(".geo-shape.geo-back"),
+    geoMid: document.querySelectorAll(".geo-shape.geo-mid"),
+    geoFront: document.querySelectorAll(".geo-shape.geo-front"),
   };
 
   // Each phase is independent and defensively isolated: a missing
@@ -168,7 +170,29 @@ function setupScrollReveal(inView, stagger, { languageCards, liveCta, whyBox }) 
 // needed. Skipped on narrow viewports: the parallax range is barely
 // visible on a small screen and isn't worth the continuous scroll work
 // on typically weaker hardware.
-function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, images }, imagesEntrance) {
+
+// Binds one depth band's worth of geometric shapes to scroll.
+// Alternates direction and varies rate/rotation per shape from its
+// index alone, so every shape in a band still feels distinct without
+// any random-number generation. ----
+function bindGeoDepthLayer(animate, scroll, shapes, { baseRate, rateStep, rotateStep }) {
+  shapes.forEach((shape, i) => {
+    const direction = i % 2 === 0 ? 1 : -1;
+    const rate = baseRate + (i % 4) * rateStep;
+    const rotateAmount = ((i % 5) + 1) * rotateStep * direction;
+
+    scroll(
+      animate(
+        shape,
+        { y: ["0%", `${direction * rate}%`], rotate: [0, rotateAmount] },
+        { easing: "linear" }
+      ),
+      { target: shape, offset: ["start end", "end start"] }
+    );
+  });
+}
+
+function setupScrollDepth(animate, scroll, { hero, geoBack, geoMid, geoFront, images }, imagesEntrance) {
   if (typeof scroll !== "function" || IS_NARROW_VIEWPORT) return;
 
   // Hero content recedes as the page scrolls past it — foreground
@@ -186,27 +210,17 @@ function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, imag
     );
   }
 
-  // Background aurora glow: slower, further-back layer.
-  if (auroraBg) {
-    scroll(
-      animate(auroraBg, { y: ["0%", "20%"], opacity: [1, 0.6] }, { easing: "linear" }),
-      { target: auroraBg, offset: ["start start", "end start"] }
-    );
-  }
-
-  // Each planet drifts at its own rate/scale so the group reads as
-  // layered depth rather than one flat background.
-  auroraPlanets.forEach((planet, i) => {
-    const rate = 10 + i * 6;
-    scroll(
-      animate(
-        planet,
-        { y: ["0%", `${rate}%`], scale: [1, 1 + i * 0.03] },
-        { easing: "linear" }
-      ),
-      { target: planet, offset: ["start end", "end start"] }
-    );
-  });
+  // Geometric background: three depth bands, each shape bound
+  // directly to its own scroll progress (target: the shape itself,
+  // not the page), which is what makes every shape animate only
+  // while it's near the viewport and freeze the instant scrolling
+  // stops — same mechanism the coding-image drift below already
+  // relies on. Speed/rotation vary per shape via a deterministic
+  // formula on its index (not Math.random()), so the motion reads as
+  // varied without ever being unpredictable or jumpy between reloads.
+  bindGeoDepthLayer(animate, scroll, geoBack, { baseRate: 4, rateStep: 2, rotateStep: 3 });
+  bindGeoDepthLayer(animate, scroll, geoMid, { baseRate: 9, rateStep: 3, rotateStep: 5 });
+  bindGeoDepthLayer(animate, scroll, geoFront, { baseRate: 15, rateStep: 4, rotateStep: 7 });
 
   // Coding images: a subtle continuous drift as the section transits
   // the viewport. This targets the same elements and the same `y`
@@ -266,9 +280,11 @@ if (typeof Motion === "undefined") {
   ).matches;
 
   if (prefersReducedMotion) {
-    // Reveal immediately, no animation — CSS's own reduced-motion
-    // handling on .aurora-bg/.aurora-planet covers the background, and
-    // skipping the hero/image entrance calls is safe because those
+    // Reveal immediately, no animation — the geometric background's
+    // shapes never receive a scroll-linked transform in this branch
+    // (runAnimations, and therefore bindGeoDepthLayer, never runs),
+    // so they stay static automatically. Skipping the hero/image
+    // entrance calls is safe because those
     // elements aren't hidden by default in CSS (their keyframes force
     // an opacity:0 start, they aren't hidden at rest).
     revealImmediately();
