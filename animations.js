@@ -80,8 +80,6 @@ function runAnimations() {
     whyBox: document.querySelectorAll(".why-box"),
     auroraBg: document.querySelector(".aurora-bg"),
     auroraPlanets: document.querySelectorAll(".aurora-planet"),
-    arenaBtn: document.querySelector("#arena-btn"),
-    bugBtn: document.querySelector("#bughunter-btn"),
   };
 
   // Each phase is independent and defensively isolated: a missing
@@ -239,19 +237,11 @@ function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, imag
 // ---- Micro-interactions: spring-based hover/press feedback.
 // Gated on (hover: hover) and (pointer: fine) so touch devices never
 // get a hover state stuck on after a tap. ----
-function setupMicroInteractions(animate, { arenaBtn, bugBtn, languageCards }) {
+function setupMicroInteractions(animate, { languageCards }) {
   const supportsHover = window.matchMedia(
     "(hover: hover) and (pointer: fine)"
   ).matches;
   if (!supportsHover) return;
-
-  [arenaBtn, bugBtn].forEach((btn) => {
-    if (!btn) return;
-    btn.addEventListener("mouseenter", () => animate(btn, { scale: 1.08 }, SPRING));
-    btn.addEventListener("mouseleave", () => animate(btn, { scale: 1 }, SPRING));
-    btn.addEventListener("mousedown", () => animate(btn, { scale: 0.97 }, SPRING_SNAPPY));
-    btn.addEventListener("mouseup", () => animate(btn, { scale: 1.08 }, SPRING_SNAPPY));
-  });
 
   languageCards.forEach((card) => {
     card.addEventListener("mouseenter", () =>
