@@ -1,13 +1,76 @@
+/* =========================================
+   DESIGN TOKENS
+   Formalizes the existing aurora palette and adds a real type
+   system. Every token falls back to a system font, so pages that
+   haven't added the Google Fonts <link> yet degrade cleanly instead
+   of breaking.
+   ========================================= */
+:root {
+  /* Palette — unchanged from the existing aurora background */
+  --bg-deep: #170a30;
+  --bg-mid: #2f1055;
+  --bg-warm: #5c1f6b;
+  --bg-warm-2: #7a2a63;
+  --accent-violet: #7c3aed;
+  --accent-pink: #d94f9c;
+  --accent-pink-bright: #ec4899;
+  --accent-amber: #f7a072;
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --text-muted: rgba(255, 255, 255, 0.6);
+
+  --surface-glass: rgba(255, 255, 255, 0.08);
+  --surface-glass-strong: rgba(255, 255, 255, 0.14);
+  --border-glass: rgba(255, 255, 255, 0.12);
+
+  /* Type — a deliberate pairing instead of the system stack.
+     Display: geometric/technical, for headings and the wordmark.
+     Body: warm humanist sans, for anything read at length.
+     Mono: for code, terminal UI, and technical labels. */
+  --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --space-6: 64px;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.2s;
+  --dur-base: 0.3s;
+  --dur-slow: 0.6s;
+
+  --header-height: 68px;
+}
+
+/* Global box-sizing reset — without this, elements that combine
+   width:100% with horizontal padding (e.g. .language-card) overflow
+   their container instead of shrinking to fit it. This was already
+   causing real horizontal overflow on mobile before this pass. */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+  font-family: var(--font-body);
   margin: 0;
   padding: 0;
   background: linear-gradient(
     180deg,
-    #170a30 0%,
-    #2f1055 30%,
-    #5c1f6b 60%,
-    #7a2a63 100%
+    var(--bg-deep) 0%,
+    var(--bg-mid) 30%,
+    var(--bg-warm) 60%,
+    var(--bg-warm-2) 100%
   );
   color: #e0e7ff;
   position: relative;
@@ -15,6 +78,12 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Headings use the display face site-wide; body copy stays on
+   --font-body (set on <body> above). */
+h1, h2, h3, h4, .site-title, .brand-name {
+  font-family: var(--font-display);
 }
 
 /* Aurora / mesh gradient blobs — kept same background */
@@ -220,34 +289,427 @@ header {
   text-shadow: none;
 }
 
+/* Homepage hero layout — two columns on desktop, stacked on mobile.
+   Only present on home.html; language pages keep the plain
+   centered .hero above untouched. */
+.hero-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  text-align: left;
+}
 
-/* Images */
-.images {
+.hero-copy {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.hero .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-pink-bright);
+  margin: 0 0 var(--space-2);
+}
+
+.hero-copy h1 {
+  text-align: left;
+}
+
+.hero-copy .quote {
+  text-align: left;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  display: inline-block;
+  transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-pink));
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(217, 79, 156, 0.35);
+}
+
+.btn-primary:hover {
+  transform: scale(1.04);
+  box-shadow: 0 14px 32px rgba(217, 79, 156, 0.5);
+}
+
+.btn-ghost {
+  background: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-glass-strong);
+  transform: scale(1.03);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent-pink-bright);
+  outline-offset: 3px;
+}
+
+/* Hero signature element — a small terminal window instead of stock
+   photography. Ties directly to "Be Ahead" as a programming product
+   rather than being interchangeable decoration. */
+.hero-visual {
+  flex: 1 1 360px;
+  max-width: 420px;
   display: flex;
   justify-content: center;
-  gap: 20px;
-  padding: 30px 20px;
-  flex-wrap: wrap;
-  background: linear-gradient(
-    135deg,
-    rgba(15, 23, 42, 0.75),
-    rgba(20, 50, 80, 0.75)
-  );
-  border-bottom: 1px solid rgba(217, 79, 156, 0.15);
 }
 
-.images img {
-  width: 45%;
-  max-width: 400px;
-  border-radius: 12px;
+.terminal {
+  width: 100%;
+  background: rgba(10, 12, 20, 0.85);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.terminal-bar {
+  display: flex;
+  gap: 7px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.terminal-bar span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.terminal-bar span:nth-child(1) { background: #ff5f57; }
+.terminal-bar span:nth-child(2) { background: #febc2e; }
+.terminal-bar span:nth-child(3) { background: #28c840; }
+
+.terminal-body {
+  margin: 0;
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #b6ffbf;
+  min-height: 150px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-body .prompt {
+  color: var(--accent-pink-bright);
+}
+
+.terminal-body .cursor {
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  background: #b6ffbf;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: caretBlink 1s step-end infinite;
+}
+
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-body .cursor {
+    animation: none;
+  }
+}
+
+.scroll-cue {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-5);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 1.3rem;
+  animation: scrollCueBob 2s ease-in-out infinite;
+}
+
+.scroll-cue:hover {
+  color: var(--text-primary);
+}
+
+@keyframes scrollCueBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .hero-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .hero-copy h1,
+  .hero-copy .quote,
+  .hero .eyebrow {
+    text-align: center;
+  }
+  .hero-actions {
+    justify-content: center;
+  }
+  .hero-visual {
+    max-width: 440px;
+  }
+}
+
+
+/* =========================================
+   SITE HEADER / NAV — homepage only (new classes, so the shared
+   `header` / `.site-title` / `.logo-overlay` rules above are left
+   untouched for the other pages that still use the old markup).
+   ========================================= */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  background: rgba(10, 12, 20, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  height: var(--header-height);
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.main-nav a {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 6px 2px;
+  position: relative;
+  transition: color var(--dur-fast) ease;
+}
+
+.main-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-violet), var(--accent-pink));
+  transition: right var(--dur-base) var(--ease-out-expo);
+  border-radius: 2px;
+}
+
+.main-nav a:hover,
+.main-nav a:focus-visible {
+  color: var(--text-primary);
+}
+
+.main-nav a:hover::after,
+.main-nav a:focus-visible::after {
+  right: 0;
+}
+
+.main-nav a[aria-current="page"] {
+  color: var(--text-primary);
+}
+
+.main-nav a[aria-current="page"]::after {
+  right: 0;
+  background: var(--accent-pink-bright);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nav-cta {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  background: #ffffff;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+
+.nav-cta:hover {
+  transform: scale(1.04);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(217, 79, 156, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.images img:hover {
-  transform: scale(1.03);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+/* Hamburger — hidden on desktop, shown under the breakpoint below */
+.nav-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+  background: var(--surface-glass);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-toggle span {
+  width: 18px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: transform var(--dur-base) var(--ease-out-expo), opacity var(--dur-fast) ease;
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.nav-toggle:focus-visible,
+.main-nav a:focus-visible,
+.nav-cta:focus-visible {
+  outline: 2px solid var(--accent-pink-bright);
+  outline-offset: 2px;
+}
+
+@media (max-width: 780px) {
+  .main-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: rgba(10, 12, 20, 0.96);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border-glass);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--dur-base) var(--ease-out-expo);
+  }
+
+  .main-nav.is-open {
+    max-height: min(70vh, 480px);
+    overflow-y: auto;
+  }
+
+  .main-nav a {
+    padding: 14px var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .main-nav a::after {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+}
+
+/* Very narrow phones (≤360px): tighten the header so the brand text,
+   Sign In pill, and hamburger all fit without overflowing. */
+@media (max-width: 360px) {
+  .header-inner {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+  .brand-name {
+    font-size: 1.02rem;
+  }
+  .nav-cta {
+    padding: 8px 13px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-nav,
+  .nav-toggle span {
+    transition: none;
+  }
 }
 
 
@@ -735,6 +1197,11 @@ footer p {
 
   box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+#beai-chatbot:focus-visible {
+  outline: 2px solid var(--accent-pink-bright, #ec4899);
+  outline-offset: 3px;
 }
 
 
