@@ -25,11 +25,12 @@
 //      before the class is added, so nothing here depends on any
 //      transition-delay rule existing in style.css.
 //
-//   2. Motion-driven animations (hero, images, aurora layers, buttons,
-//      cards) — everything else. Where an element has both an entrance
-//      animation and a continuous scroll-linked one (the coding
-//      images), the scroll-linked one is deferred until the entrance
-//      has fully finished, so the two never fight over `transform`.
+//   2. Motion-driven animations (hero, images, geometric background
+//      clusters, buttons, cards) — everything else. Where an element
+//      has both an entrance animation and a continuous scroll-linked
+//      one (the coding images), the scroll-linked one is deferred
+//      until the entrance has fully finished, so the two never fight
+//      over `transform`.
 //
 // Every phase in runAnimations() is wrapped so a failure in one
 // (missing element, older Motion build without scroll()/inView(),
@@ -78,8 +79,9 @@ function runAnimations() {
     languageCards: document.querySelectorAll(".language-card"),
     liveCta: document.querySelectorAll(".live-cta"),
     whyBox: document.querySelectorAll(".why-box"),
-    auroraBg: document.querySelector(".aurora-bg"),
-    auroraPlanets: document.querySelectorAll(".aurora-planet"),
+    geoBg: document.querySelector(".geo-bg"),
+    geoGrid: document.querySelector(".geo-grid"),
+    geoClusters: document.querySelectorAll(".geo-cluster"),
   };
 
   // Each phase is independent and defensively isolated: a missing
@@ -168,7 +170,7 @@ function setupScrollReveal(inView, stagger, { languageCards, liveCta, whyBox }) 
 // needed. Skipped on narrow viewports: the parallax range is barely
 // visible on a small screen and isn't worth the continuous scroll work
 // on typically weaker hardware.
-function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, images }, imagesEntrance) {
+function setupScrollDepth(animate, scroll, { hero, geoBg, geoGrid, geoClusters, images }, imagesEntrance) {
   if (typeof scroll !== "function" || IS_NARROW_VIEWPORT) return;
 
   // Hero content recedes as the page scrolls past it — foreground
@@ -186,25 +188,42 @@ function setupScrollDepth(animate, scroll, { hero, auroraBg, auroraPlanets, imag
     );
   }
 
-  // Background aurora glow: slower, further-back layer.
-  if (auroraBg) {
+  // Background geometric layer: slower, further-back layer.
+  if (geoBg) {
     scroll(
-      animate(auroraBg, { y: ["0%", "20%"], opacity: [1, 0.6] }, { easing: "linear" }),
-      { target: auroraBg, offset: ["start start", "end start"] }
+      animate(geoBg, { y: ["0%", "16%"], opacity: [1, 0.65] }, { easing: "linear" }),
+      { target: geoBg, offset: ["start start", "end start"] }
     );
   }
 
-  // Each planet drifts at its own rate/scale so the group reads as
-  // layered depth rather than one flat background.
-  auroraPlanets.forEach((planet, i) => {
-    const rate = 10 + i * 6;
+  // Line grid drifts at its own slow rate, further back than the
+  // clusters, so the layer reads with real depth rather than flat.
+  if (geoGrid) {
+    scroll(
+      animate(geoGrid, { y: ["0%", "8%"] }, { easing: "linear" }),
+      { target: geoGrid, offset: ["start start", "end start"] }
+    );
+  }
+
+  // Each cluster gets exactly one scroll-linked transform — a small
+  // translate plus a very slight rotate, rate/direction varied by
+  // index so the 9 clusters read as independent depth layers rather
+  // than one flat background. This is the only motion the clusters
+  // get: there's no continuous idle animation running underneath, so
+  // movement is tied to scroll position and stops the moment
+  // scrolling does. Binding per cluster (9 calls) rather than per
+  // node/link inside each cluster's SVG keeps this cheap regardless
+  // of how many small shapes a given cluster contains.
+  geoClusters.forEach((cluster, i) => {
+    const rate = 6 + (i % 5) * 3;
+    const rotate = (i % 2 === 0 ? 1 : -1) * (3 + (i % 4));
     scroll(
       animate(
-        planet,
-        { y: ["0%", `${rate}%`], scale: [1, 1 + i * 0.03] },
+        cluster,
+        { y: ["0%", `${rate}%`], rotate: [0, rotate] },
         { easing: "linear" }
       ),
-      { target: planet, offset: ["start end", "end start"] }
+      { target: cluster, offset: ["start end", "end start"] }
     );
   });
 
@@ -266,11 +285,14 @@ if (typeof Motion === "undefined") {
   ).matches;
 
   if (prefersReducedMotion) {
-    // Reveal immediately, no animation — CSS's own reduced-motion
-    // handling on .aurora-bg/.aurora-planet covers the background, and
-    // skipping the hero/image entrance calls is safe because those
-    // elements aren't hidden by default in CSS (their keyframes force
-    // an opacity:0 start, they aren't hidden at rest).
+    // Reveal immediately, no animation — the background clusters have
+    // no idle/continuous animation of their own (see .geo-cluster in
+    // style.css), so skipping runAnimations() here already leaves
+    // them static at their authored position; nothing extra to
+    // disable. Skipping the hero/image entrance calls is likewise
+    // safe because those elements aren't hidden by default in CSS
+    // (their keyframes force an opacity:0 start, they aren't hidden
+    // at rest).
     revealImmediately();
   } else {
     runAnimations();
