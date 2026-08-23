@@ -29,37 +29,15 @@ gtag('config', 'G-G5DCS5F9GR');
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
+<!-- Fonts: Space Grotesk (display), Manrope (body), JetBrains Mono (code) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Manrope:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+
 <!-- CSS -->
 <link rel="stylesheet" href="style.css">
 
 <style>
-nav { margin-top: 10px; text-align: right; }
-nav a { color: #2a5298; text-decoration: none; margin: 0 10px; font-weight: bold; }
-nav a:hover { text-decoration: underline; }
-
-#beai-chatbot { bottom: 88px; }
-
-#arena-btn {
-  position: fixed; bottom: 20px; right: 20px; width: 64px; height: 64px;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #7c3aed, #d94f9c); color: #fff;
-  border-radius: 50%; text-decoration: none; text-align: center; font-weight: 700;
-  font-size: 0.68em; line-height: 1.15; letter-spacing: 0.1px;
-  box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5); z-index: 9998;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-#arena-btn:hover { transform: scale(1.08); box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7); }
-
-#bughunter-btn {
-  position: fixed; top: 20px; right: 20px; padding: 12px 20px;
-  display: flex; align-items: center; gap: 8px;
-  background: linear-gradient(135deg, #7c3aed, #d94f9c); color: #fff;
-  border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.9em;
-  box-shadow: 0 10px 25px rgba(217, 79, 156, 0.5); z-index: 9998;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-#bughunter-btn:hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(217, 79, 156, 0.7); }
-
 .lang-logo {
   width: 58px; height: 58px; min-width: 58px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; margin-right: 18px;
@@ -83,23 +61,59 @@ nav a:hover { text-decoration: underline; }
   <div class="aurora-planet"></div>
 </div>
 
-<header>
-  <img src="logo.jpg" alt="Be Ahead Logo" class="logo-overlay">
-  <h1 class="site-title">Be Ahead.</h1>
-  <nav><a href="index.html">Sign In / Sign Up</a></nav>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="home.html" class="brand">
+      <img src="logo.jpg" alt="" class="brand-logo">
+      <span class="brand-name">Be Ahead</span>
+    </a>
+
+    <nav class="main-nav" id="main-nav">
+      <a href="#languages">Languages</a>
+      <a href="test.html">Arena</a>
+      <a href="bughunter.html">Bug Hunter</a>
+      <a href="interview.html">Be Ahead Live</a>
+      <a href="prompt-enhancer.html">Prompt Enhancer</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="index.html" class="nav-cta">Sign In</a>
+      <button
+        type="button"
+        class="nav-toggle"
+        id="nav-toggle"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="main-nav"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
 </header>
 
-<section class="hero">
-  <h1>MOVE FAST <br>BE AHEAD.</h1>
-  <p class="quote">"Stay ahead by learning and building."</p>
+<section class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow">Learn · Build · Interview</p>
+      <h1>MOVE FAST <br>BE AHEAD.</h1>
+      <p class="quote">"Stay ahead by learning and building."</p>
+      <div class="hero-actions">
+        <a href="#languages" class="btn btn-primary">Explore Languages</a>
+        <a href="interview.html" class="btn btn-ghost">Try a Live Interview</a>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="terminal">
+        <div class="terminal-bar"><span></span><span></span><span></span></div>
+        <pre class="terminal-body"><code id="terminal-typed"></code></pre>
+      </div>
+    </div>
+  </div>
+  <a href="#languages" class="scroll-cue" aria-label="Scroll to programming languages">↓</a>
 </section>
 
-<section class="images">
-  <img src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=600&h=375&fit=crop" alt="Programming and coding on a computer">
-  <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&h=375&fit=crop" alt="Code displayed on a computer screen">
-</section>
-
-<section class="languages">
+<section class="languages" id="languages">
   <h2 class="section-heading">Programming Languages</h2>
   <div class="card-grid">
     <a href="python.html" class="language-card python"><div class="lang-logo"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python logo"></div><div class="lang-info"><h3>Python</h3><p>Basics to Pro <span class="lang-tagline">— automate scripts, build APIs, power AI</span></p></div></a>
@@ -145,12 +159,10 @@ nav a:hover { text-decoration: underline; }
 
 <script src="https://cdn.jsdelivr.net/npm/motion@11/dist/motion.js" defer></script>
 <script src="animations.js" defer></script>
+<script src="nav.js" defer></script>
 <script src="home.js"></script>
 
-<a href="test.html" id="arena-btn">🏆<br>Arena</a>
-<a href="bughunter.html" id="bughunter-btn">🐛 Bug Hunter</a>
-
-<div id="beai-chatbot">Be AI</div>
+<div id="beai-chatbot" role="button" tabindex="0" aria-label="Open Be AI chat" aria-expanded="false" aria-controls="beai-window">Be AI</div>
 <div id="beai-window">
   <div id="beai-header">BeAI</div>
   <div id="beai-messages"></div>
