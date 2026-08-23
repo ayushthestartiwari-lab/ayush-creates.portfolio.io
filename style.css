@@ -86,133 +86,80 @@ h1, h2, h3, h4, .site-title, .brand-name {
   font-family: var(--font-display);
 }
 
-/* Aurora / mesh gradient blobs — kept same background */
-.aurora-bg {
-  position: fixed;
-  inset: 0;
+/* Geometric background system — replaces the old aurora/blob layer.
+   Same z-index/positioning strategy as the blob it replaces (sits
+   behind all content, never captures pointer events), but instead of
+   a fixed viewport-only overlay it spans the full document height so
+   individual shape clusters can sit near the hero, the language
+   cards, the CTA/why sections, and the tail of the page rather than
+   all being crammed into the first screenful.
+
+   Motion/behavior lives in animations.js (setupScrollDepth): every
+   shape is completely static — no CSS keyframes, no animation here
+   at all — until Motion's scroll() binds a transform to scroll
+   position. That binding is itself skipped on narrow viewports, when
+   Motion fails to load, and under prefers-reduced-motion, so the
+   default state below (no motion, no JS) is also the correct
+   reduced-motion / no-JS fallback. */
+.geo-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -3;
   overflow: hidden;
   pointer-events: none;
 }
 
-.aurora-bg::before {
-  content: "";
+.geo-shape {
   position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(2px 2px at 10% 15%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 25% 45%, #fff, transparent),
-    radial-gradient(1px 1px at 40% 10%, #fff, transparent),
-    radial-gradient(2px 2px at 55% 60%, #fff, transparent),
-    radial-gradient(1px 1px at 70% 25%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 85% 50%, #fff, transparent),
-    radial-gradient(1px 1px at 95% 80%, #fff, transparent),
-    radial-gradient(2px 2px at 15% 75%, #fff, transparent),
-    radial-gradient(1px 1px at 65% 90%, #fff, transparent);
-
-  background-repeat: repeat;
-  background-size: 600px 600px;
-  opacity: 0.45;
-  animation: twinkle 6s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
-.aurora-bg span {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.35;
-  mix-blend-mode: screen;
+.geo-shape svg {
+  display: block;
+  overflow: visible;
 }
 
-.aurora-bg span:nth-child(1) {
-  width: 420px;
-  height: 420px;
-  background: #7c3aed;
-  top: -10%;
-  left: -5%;
+/* Depth bands — back is faintest/most blurred and (via animations.js)
+   moves least on scroll; front is the most present layer and moves
+   most. Opacity stays low across all three so the pattern supports
+   the page content instead of competing with it. */
+.geo-back {
+  opacity: 0.14;
+  filter: blur(0.4px);
 }
 
-.aurora-bg span:nth-child(2) {
-  width: 520px;
-  height: 520px;
-  background: #ec4899;
-  bottom: -15%;
-  right: -10%;
+.geo-mid {
+  opacity: 0.18;
 }
 
-.aurora-bg span:nth-child(3) {
-  width: 360px;
-  height: 360px;
-  background: #f7a072;
-  top: 40%;
-  left: 50%;
+.geo-front {
+  opacity: 0.22;
 }
 
-.aurora-planet {
-  position: absolute;
-  top: 12%;
-  right: 8%;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 35% 35%,
-    #ffe4b8,
-    #f7a072 45%,
-    #d94f9c 75%,
-    transparent 100%
-  );
-  box-shadow: 0 0 60px 15px rgba(247, 160, 114, 0.25);
-  opacity: 0.75;
-}
-
-@keyframes twinkle {
-  from {
-    opacity: 0.25;
+@media (max-width: 640px) {
+  /* Thin the pattern out on small screens rather than rendering the
+     full desktop density — see animations.js for the matching skip
+     of scroll-linked motion below this breakpoint. */
+  .geo-shape.geo-mobile-hide {
+    display: none;
   }
 
-  to {
-    opacity: 0.55;
+  .geo-back {
+    opacity: 0.1;
   }
-}
-
-/* Ambient background drift — position/scale only, same colors */
-@keyframes drift-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(30px, 40px) scale(1.06); }
-}
-
-@keyframes drift-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-35px, -25px) scale(1.05); }
-}
-
-@keyframes drift-c {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(20px, -30px) scale(1.08); }
-}
-
-.aurora-bg span:nth-child(1) {
-  animation: drift-a 22s ease-in-out infinite;
-}
-
-.aurora-bg span:nth-child(2) {
-  animation: drift-b 26s ease-in-out infinite;
-}
-
-.aurora-bg span:nth-child(3) {
-  animation: drift-c 19s ease-in-out infinite;
-}
-
-.aurora-planet {
-  animation: drift-b 30s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-bg span,
-  .aurora-planet,
-  .aurora-bg::before {
-    animation: none;
+  /* Defense in depth: animations.js already skips attaching any
+     scroll-linked motion when reduced motion is requested, so shapes
+     never receive an inline transform in that case. This just
+     guarantees they can never appear to move even if that JS check
+     were ever bypassed. */
+  .geo-shape {
+    transform: none !important;
   }
 }
 
