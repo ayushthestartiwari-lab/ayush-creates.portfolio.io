@@ -11,6 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!toggleBtn || !chatWindow || !messagesEl || !input) return;
 
+  // Defensive: set these here (not just in home.html's markup) so the
+  // widget is keyboard-accessible on every page it's included on, even
+  // pages whose markup hasn't been updated with these attributes yet.
+  if (!toggleBtn.hasAttribute("role")) toggleBtn.setAttribute("role", "button");
+  if (!toggleBtn.hasAttribute("tabindex")) toggleBtn.setAttribute("tabindex", "0");
+  if (!toggleBtn.hasAttribute("aria-label")) toggleBtn.setAttribute("aria-label", "Open Be AI chat");
+  toggleBtn.setAttribute("aria-expanded", "false");
+
   // Conversation history kept in memory (per page load), sent to the
   // API so BeAI has context across turns within this chat.
   let history = [];
@@ -24,10 +32,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chatWindow.style.display = "none";
 
-  toggleBtn.addEventListener("click", () => {
+  function toggleChat() {
     const isOpen = chatWindow.style.display === "flex";
     chatWindow.style.display = isOpen ? "none" : "flex";
+    toggleBtn.setAttribute("aria-expanded", String(!isOpen));
     if (!isOpen) input.focus();
+  }
+
+  toggleBtn.addEventListener("click", toggleChat);
+
+  // toggleBtn is a <div role="button">, not a real <button>, so
+  // keyboard activation (Enter/Space) has to be wired up by hand —
+  // browsers only do this automatically for native interactive elements.
+  toggleBtn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleChat();
+    }
   });
 
   input.addEventListener("keydown", (e) => {
