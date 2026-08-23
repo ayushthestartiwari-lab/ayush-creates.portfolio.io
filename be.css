@@ -1,5 +1,85 @@
 /* be.css
    Referenced by go.html, java.html, javascript.html, python.html,
-   rust.html, and html.html — kept as an empty placeholder since all
-   actual BeAI chatbot styling lives in style.css.
-   Feel free to add any page-specific tweaks here later. */
+   rust.html, html.html, and cpp.html.
+
+   Styles the .level sections (Beginner/Intermediate/Advanced) that
+   were previously unstyled — plain h2/p/code-box with no visual
+   hierarchy distinguishing one difficulty from another. */
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.level {
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5) var(--space-4);
+  text-align: left;
+  position: relative;
+  border-left: 3px solid var(--level-accent, var(--accent-violet));
+}
+
+.level h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.level h2::before {
+  content: var(--level-label, "");
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--level-accent, var(--accent-violet));
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  margin-bottom: var(--space-2);
+  vertical-align: middle;
+}
+
+.level > p {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-3);
+  font-size: 1.02rem;
+}
+
+/* The shared .code-wrapper centers its code box by default (used
+   elsewhere too), but inside a left-aligned .level card centering
+   reads as misaligned against the heading/paragraph above it. */
+.level .code-wrapper {
+  justify-content: flex-start;
+}
+
+.level.beginner {
+  --level-accent: #3ecf8e;
+  --level-label: "Step 1 · Beginner";
+}
+
+.level.intermediate {
+  --level-accent: var(--accent-amber);
+  --level-label: "Step 2 · Intermediate";
+}
+
+.level.advanced {
+  --level-accent: var(--accent-pink-bright);
+  --level-label: "Step 3 · Advanced";
+}
+
+/* h2::before renders the label above the heading text on its own
+   line rather than inline, so the badge doesn't crowd the title. */
+.level h2 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
