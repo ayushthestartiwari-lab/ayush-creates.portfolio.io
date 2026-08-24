@@ -77,6 +77,7 @@ function runAnimations() {
     heroTitle: document.querySelector(".hero h1"),
     heroQuote: document.querySelector(".hero .quote"),
     hero: document.querySelector(".hero"),
+    networkBackground: document.querySelector(".network-background"),
     images: document.querySelectorAll(".images img"),
     languageCards: document.querySelectorAll(".language-card"),
     liveCta: document.querySelectorAll(".live-cta"),
@@ -173,8 +174,23 @@ function setupScrollReveal(inView, stagger, { languageCards, liveCta, whyBox }) 
 // The decorative geometric background is a separate, independent
 // system (geo-network.js, a plain-JS canvas network) — it doesn't use
 // Motion at all, so it isn't wired up here.
-function setupScrollDepth(animate, scroll, { hero, images }, imagesEntrance) {
+function setupScrollDepth(animate, scroll, { hero, networkBackground, images }, imagesEntrance) {
   if (typeof scroll !== "function" || IS_NARROW_VIEWPORT) return;
+
+  // The supplied artwork is its own fixed background layer. Its slow drift is
+  // tied to hero scroll progress, so it adds depth without competing with
+  // content or the existing geometric canvas.
+  if (networkBackground && hero) {
+    scroll(
+      animate(
+        networkBackground,
+        { opacity: [0.5, 0.7, 0.45], y: ["0%", "7%", "12%"], scale: [1, 1.04, 1.08] },
+        { easing: "linear" }
+      ),
+      { target: hero, offset: ["start start", "35% start", "end start"] }
+    );
+  }
+
   // layer of the depth stack. Targets the .hero container itself,
   // never the h1/quote the load-in animation already owns, so the two
   // systems never compete for the same element's transform.
