@@ -1,41 +1,55 @@
 // animations.js
 // Uses Motion (https://motion.dev) loaded globally via CDN in home.html.
 // Must load AFTER the Motion <script> tag.
-
+//
 // INITIALIZATION ORDER
 // Everything in this file — constants, config, and every function — is
 // declared BEFORE the code at the bottom that actually decides whether
-// to run any of it.
-
-// Two independent systems share this file:
+// to run any of it. `const` bindings are not hoisted the way function
+// declarations are: they exist in the temporal dead zone until their
+// declaration line runs, so anything that reads them has to appear
+// after that line, top-to-bottom, no exceptions. The trigger logic
+// (Motion feature-check → reduced-motion check → runAnimations()) is
+// the very last thing in the file for exactly this reason.
+//
+// ARCHITECTURE
+// Two independent systems share this file, kept strictly separate so
+// they never write to the same property on the same element at the
+// same time:
 //
 //   1. Reveal system (.language-card, .live-cta, .why-box)
-//      100% CSS-driven. This script only toggles the ".is-visible"
-//      class.
+//      100% CSS-driven. This script only ever toggles the ".is-visible"
+//      class — it never touches these elements' opacity/transform via
+//      Motion. The stagger between siblings is computed in JS (via
+//      Motion's stagger()) and applied as a per-element setTimeout
+//      before the class is added, so nothing here depends on any
+//      transition-delay rule existing in style.css.
 //
 //   2. Motion-driven animations (hero, images, geometric background
-//      layers, buttons, cards) — everything else.
+//      layers, buttons, cards) — everything else. Where an element
+//      has both an entrance animation and a continuous scroll-linked
+//      one (the coding images), the scroll-linked one is deferred
+//      until the entrance has fully finished, so the two never fight
+//      over `transform`.
 //
 // Every phase in runAnimations() is wrapped so a failure in one
-// can't take down the rest of the animation system.
+// (missing element, older Motion build without scroll()/inView(),
+// etc.) can't take down the rest of the script.
 
-// ---- Constants ----
+// ---- Constants (must exist before runAnimations() can be called) ----
 
-// Springs are reserved for direct user interaction (hover/press).
-// Time- or scroll-driven animations use easing curves instead.
-const SPRING = {
-  type: "spring",
-  stiffness: 300,
-  damping: 30,
-  mass: 0.8,
-};
-
+// Springs are reserved for direct user interaction (hover/press) —
+// everything time- or scroll-driven uses a plain easing curve, which is
+// both cheaper and reads as more "premium/controlled" than a spring
+// would for passive motion.
+const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 };
+const SPRING_SNAPPY = { type: "spring", stiffness: 420, damping: 26, mass: 0.6 };
 const EASE_OUT_EXPO = [0.22, 1, 0.36, 1];
+const IS_NARROW_VIEWPORT = window.matchMedia("(max-width: 640px)").matches;
 
-const IS_NARROW_VIEWPORT =
-  window.matchMedia("(max-width: 640px)").matches;
-
-// ---- Utility functions ----
+// ---- Functions (declarations are hoisted, but kept below the
+// constants above for readability — they're only ever called after
+// the trigger block at the bottom runs anyway) ----
 
 function revealImmediately() {
   document
@@ -52,116 +66,84 @@ function safely(fn) {
   }
 }
 
-// ---- Main animation runner ----
-
 function runAnimations() {
   const { animate, stagger, inView, scroll } = Motion;
 
+  // Query once, reuse everywhere — avoids repeating the same
+  // querySelectorAll across independent phases.
   const dom = {
     heroTitle: document.querySelector(".hero h1"),
     heroQuote: document.querySelector(".hero .quote"),
     hero: document.querySelector(".hero"),
-
     images: document.querySelectorAll(".images img"),
-
     languageCards: document.querySelectorAll(".language-card"),
     liveCta: document.querySelectorAll(".live-cta"),
     whyBox: document.querySelectorAll(".why-box"),
-
     geoBack: document.querySelectorAll(".geo-shape.geo-back"),
     geoMid: document.querySelectorAll(".geo-shape.geo-mid"),
     geoFront: document.querySelectorAll(".geo-shape.geo-front"),
   };
 
+  // Each phase is independent and defensively isolated: a missing
+  // element is already a no-op inside each function, but this also
+  // catches a genuinely missing/older Motion API (e.g. no scroll())
+  // without letting it cancel the rest of the animation system. This
+  // is unrelated to — and does not paper over — the initialization-
+  // order bug above; it only guards against optional-feature absence
+  // at runtime, which is a different failure mode.
   safely(() => animateHero(animate, dom));
-
-  const imagesEntrance = safely(() =>
-    animateCodingImages(animate, stagger, dom)
-  );
-
-  safely(() =>
-    setupScrollReveal(inView, stagger, dom)
-  );
-
-  safely(() =>
-    setupScrollDepth(animate, scroll, dom, imagesEntrance)
-  );
-
-  safely(() =>
-    setupMicroInteractions(animate, dom)
-  );
+  const imagesEntrance = safely(() => animateCodingImages(animate, stagger, dom));
+  safely(() => setupScrollReveal(inView, stagger, dom));
+  safely(() => setupScrollDepth(animate, scroll, dom, imagesEntrance));
+  safely(() => setupMicroInteractions(animate, dom));
 }
 
-// ---- Hero entrance animation ----
-
+// ---- Hero: fade + rise on load ----
 function animateHero(animate, { heroTitle, heroQuote }) {
   if (heroTitle) {
     animate(
       heroTitle,
-      {
-        opacity: [0, 1],
-        y: [30, 0],
-      },
-      {
-        duration: 0.8,
-        easing: EASE_OUT_EXPO,
-      }
+      { opacity: [0, 1], y: [30, 0] },
+      { duration: 0.8, easing: EASE_OUT_EXPO }
     );
   }
-
   if (heroQuote) {
     animate(
       heroQuote,
-      {
-        opacity: [0, 1],
-        y: [20, 0],
-      },
-      {
-        duration: 0.7,
-        delay: 0.25,
-        easing: EASE_OUT_EXPO,
-      }
+      { opacity: [0, 1], y: [20, 0] },
+      { duration: 0.7, delay: 0.25, easing: EASE_OUT_EXPO }
     );
   }
 }
 
-// ---- Coding images entrance animation ----
-
+// ---- Coding images: fade in on load ----
+// Returns the animation controls so the scroll-depth phase can wait for
+// `.finished` before it ever touches these same elements' transform —
+// see setupScrollDepth for why that matters.
 function animateCodingImages(animate, stagger, { images }) {
   if (!images.length) return null;
-
   return animate(
     images,
-    {
-      opacity: [0, 1],
-      scale: [0.96, 1],
-      y: [12, 0],
-    },
+    { opacity: [0, 1], scale: [0.96, 1], y: [12, 0] },
     {
       duration: 0.7,
-      delay: stagger(0.15, {
-        startDelay: 0.3,
-      }),
+      delay: stagger(0.15, { startDelay: 0.3 }),
       easing: EASE_OUT_EXPO,
     }
   );
 }
 
-// ---- Scroll reveal ----
-
-function setupScrollReveal(
-  inView,
-  stagger,
-  { languageCards, liveCta, whyBox }
-) {
-  if (typeof inView !== "function") return;
-
-  const groups = [
-    languageCards,
-    liveCta,
-    whyBox,
-  ];
-
+// ---- Scroll reveal: language cards, Be Ahead Live, Why Be Ahead ----
+// Deliberately does not call Motion's animate() on these elements at
+// all. The opacity/transform transition is entirely CSS's job (a
+// ".is-visible" class flip); this only decides *when* each element's
+// class flips. Watching the first element of a group is enough to know
+// the group has reached the viewport — each sibling's class is then
+// added on its own JS-computed delay (via Motion's stagger, called
+// directly as a plain function rather than passed to animate) so the
+// group visibly cascades in without any transition-delay CSS required.
+function setupScrollReveal(inView, stagger, { languageCards, liveCta, whyBox }) {
+  const groups = [languageCards, liveCta, whyBox];
   const delayFor = stagger(0.08);
 
   groups.forEach((elements) => {
@@ -171,272 +153,151 @@ function setupScrollReveal(
       elements[0],
       () => {
         elements.forEach((el, i) => {
-          const delaySeconds =
-            elements.length > 1
-              ? delayFor(i, elements.length)
-              : 0;
-
-          setTimeout(() => {
-            el.classList.add("is-visible");
-          }, delaySeconds * 1000);
+          const delaySeconds = elements.length > 1 ? delayFor(i, elements.length) : 0;
+          setTimeout(() => el.classList.add("is-visible"), delaySeconds * 1000);
         });
-
         stop();
       },
-      {
-        margin: "0px 0px -10% 0px",
-      }
+      { margin: "0px 0px -10% 0px" }
     );
   });
 }
 
-// ---- Geometric background scroll depth ----
+// ---- Scroll depth: continuous, scroll-progress-linked motion for the
+// hero and decorative background layers. Bound directly to scroll
+// position via Motion's scroll(), so it plays forward/backward in sync
+// with the scrollbar automatically — no separate reverse handling
+// needed. Skipped on narrow viewports: the parallax range is barely
+// visible on a small screen and isn't worth the continuous scroll work
+// on typically weaker hardware.
 
-function bindGeoDepthLayer(
-  animate,
-  scroll,
-  shapes,
-  {
-    baseRate,
-    rateStep,
-    rotateStep,
-  }
-) {
-  if (!shapes.length) return;
-
+// Binds one depth band's worth of geometric shapes to scroll.
+// Alternates direction and varies rate/rotation per shape from its
+// index alone, so every shape in a band still feels distinct without
+// any random-number generation. ----
+function bindGeoDepthLayer(animate, scroll, shapes, { baseRate, rateStep, rotateStep }) {
   shapes.forEach((shape, i) => {
-    const direction =
-      i % 2 === 0 ? 1 : -1;
-
-    const rate =
-      baseRate + (i % 4) * rateStep;
-
-    const rotateAmount =
-      ((i % 5) + 1) *
-      rotateStep *
-      direction;
+    const direction = i % 2 === 0 ? 1 : -1;
+    const rate = baseRate + (i % 4) * rateStep;
+    const rotateAmount = ((i % 5) + 1) * rotateStep * direction;
 
     scroll(
       animate(
         shape,
-        {
-          y: [
-            "0%",
-            `${direction * rate}%`,
-          ],
-          rotate: [
-            0,
-            rotateAmount,
-          ],
-        },
-        {
-          easing: "linear",
-        }
+        { y: ["0%", `${direction * rate}%`], rotate: [0, rotateAmount] },
+        { easing: "linear" }
       ),
-      {
-        target: shape,
-        offset: [
-          "start end",
-          "end start",
-        ],
-      }
+      { target: shape, offset: ["start end", "end start"] }
     );
   });
 }
 
-// ---- Scroll-linked depth system ----
-
-function setupScrollDepth(
-  animate,
-  scroll,
-  {
-    hero,
-    geoBack,
-    geoMid,
-    geoFront,
-    images,
-  },
-  imagesEntrance
-) {
+function setupScrollDepth(animate, scroll, { hero, geoBack, geoMid, geoFront, images }, imagesEntrance) {
   if (typeof scroll !== "function") return;
 
-  // Geometric background works on all screen sizes.
-  // Mobile-specific thinning is handled in CSS.
-  bindGeoDepthLayer(
-    animate,
-    scroll,
-    geoBack,
-    {
-      baseRate: 4,
-      rateStep: 2,
-      rotateStep: 3,
-    }
-  );
+  // Geometric background: three depth bands, each shape bound
+  // directly to its own scroll progress (target: the shape itself,
+  // not the page), which is what makes every shape animate only
+  // while it's near the viewport and freeze the instant scrolling
+  // stops — same mechanism the coding-image drift below already
+  // relies on. Speed/rotation vary per shape via a deterministic
+  // formula on its index (not Math.random()), so the motion reads as
+  // varied without ever being unpredictable or jumpy between reloads.
+  // Deliberately NOT gated on IS_NARROW_VIEWPORT (unlike hero/images
+  // below): each binding is a cheap single-element scroll() listener,
+  // and skipping it entirely on phones is what made the background
+  // look scroll-unlinked there — the mobile-only thinning already
+  // happens in CSS via .geo-mobile-hide.
+  bindGeoDepthLayer(animate, scroll, geoBack, { baseRate: 4, rateStep: 2, rotateStep: 3 });
+  bindGeoDepthLayer(animate, scroll, geoMid, { baseRate: 9, rateStep: 3, rotateStep: 5 });
+  bindGeoDepthLayer(animate, scroll, geoFront, { baseRate: 15, rateStep: 4, rotateStep: 7 });
 
-  bindGeoDepthLayer(
-    animate,
-    scroll,
-    geoMid,
-    {
-      baseRate: 9,
-      rateStep: 3,
-      rotateStep: 5,
-    }
-  );
-
-  bindGeoDepthLayer(
-    animate,
-    scroll,
-    geoFront,
-    {
-      baseRate: 15,
-      rateStep: 4,
-      rotateStep: 7,
-    }
-  );
-
-  // Hero and coding-image parallax stay desktop-only.
+  // Hero/coding-image parallax stays desktop-only, unchanged from
+  // before: the visible range is barely perceptible on a small screen
+  // and isn't worth the continuous scroll work on typically weaker
+  // hardware.
   if (IS_NARROW_VIEWPORT) return;
 
-  // ---- Hero scroll depth ----
-
+  // Hero content recedes as the page scrolls past it — foreground
+  // layer of the depth stack. Targets the .hero container itself,
+  // never the h1/quote the load-in animation already owns, so the two
+  // systems never compete for the same element's transform.
   if (hero) {
     scroll(
       animate(
         hero,
-        {
-          opacity: [1, 1, 0.35],
-          y: [
-            "0%",
-            "0%",
-            "-8%",
-          ],
-          scale: [
-            1,
-            1,
-            0.97,
-          ],
-        },
-        {
-          easing: "linear",
-        }
+        { opacity: [1, 1, 0.35], y: ["0%", "0%", "-8%"], scale: [1, 1, 0.97] },
+        { easing: "linear" }
       ),
-      {
-        target: hero,
-        offset: [
-          "start start",
-          "35% start",
-          "end start",
-        ],
-      }
+      { target: hero, offset: ["start start", "35% start", "end start"] }
     );
   }
 
-  // ---- Coding images scroll depth ----
-
+  // Coding images: a subtle continuous drift as the section transits
+  // the viewport. This targets the same elements and the same `y`
+  // value as the load-in entrance above, so it's only ever attached
+  // after that entrance's `.finished` promise resolves — otherwise the
+  // two animations would both be writing to `transform` on the same
+  // images at the same time. If the entrance didn't run (or already
+  // settled) the attachment happens immediately instead.
   if (images.length) {
     const attachImageDepth = () => {
       images.forEach((img, i) => {
-        const rate =
-          6 + (i % 3) * 4;
-
+        const rate = 6 + (i % 3) * 4;
         scroll(
-          animate(
-            img,
-            {
-              y: [
-                "0%",
-                `${rate}%`,
-              ],
-            },
-            {
-              easing: "linear",
-            }
-          ),
-          {
-            target: img,
-            offset: [
-              "start end",
-              "end start",
-            ],
-          }
+          animate(img, { y: ["0%", `${rate}%`] }, { easing: "linear" }),
+          { target: img, offset: ["start end", "end start"] }
         );
       });
     };
 
-    if (
-      imagesEntrance &&
-      imagesEntrance.finished
-    ) {
-      imagesEntrance.finished
-        .then(attachImageDepth)
-        .catch(attachImageDepth);
+    if (imagesEntrance && imagesEntrance.finished) {
+      imagesEntrance.finished.then(attachImageDepth).catch(attachImageDepth);
     } else {
       attachImageDepth();
     }
   }
 }
 
-// ---- Micro-interactions ----
-
-function setupMicroInteractions(
-  animate,
-  { languageCards }
-) {
-  const supportsHover =
-    window.matchMedia(
-      "(hover: hover) and (pointer: fine)"
-    ).matches;
-
+// ---- Micro-interactions: spring-based hover/press feedback.
+// Gated on (hover: hover) and (pointer: fine) so touch devices never
+// get a hover state stuck on after a tap. ----
+function setupMicroInteractions(animate, { languageCards }) {
+  const supportsHover = window.matchMedia(
+    "(hover: hover) and (pointer: fine)"
+  ).matches;
   if (!supportsHover) return;
 
   languageCards.forEach((card) => {
-    card.addEventListener(
-      "mouseenter",
-      () => {
-        animate(
-          card,
-          {
-            y: -6,
-            scale: 1.015,
-          },
-          SPRING
-        );
-      }
+    card.addEventListener("mouseenter", () =>
+      animate(card, { y: -6, scale: 1.015 }, SPRING)
     );
-
-    card.addEventListener(
-      "mouseleave",
-      () => {
-        animate(
-          card,
-          {
-            y: 0,
-            scale: 1,
-          },
-          SPRING
-        );
-      }
+    card.addEventListener("mouseleave", () =>
+      animate(card, { y: 0, scale: 1 }, SPRING)
     );
   });
 }
 
-// ---- Trigger ----
+// ---- Trigger (must be the LAST thing in the file — everything above
+// this line, including SPRING/EASE_OUT_EXPO/IS_NARROW_VIEWPORT, has to
+// already be initialized before this can safely call runAnimations()) ----
 
 if (typeof Motion === "undefined") {
-  console.warn(
-    "Motion failed to load (CDN blocked or offline) — falling back to plain reveal."
-  );
-
+  console.warn("Motion failed to load (CDN blocked or offline) — falling back to plain reveal.");
   revealImmediately();
 } else {
-  const prefersReducedMotion =
-    window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
 
   if (prefersReducedMotion) {
-    // Reveal content immediately and leave geometric shapes static.
+    // Reveal immediately, no animation — the geometric background's
+    // shapes never receive a scroll-linked transform in this branch
+    // (runAnimations, and therefore bindGeoDepthLayer, never runs),
+    // so they stay static automatically. Skipping the hero/image
+    // entrance calls is safe because those
+    // elements aren't hidden by default in CSS (their keyframes force
+    // an opacity:0 start, they aren't hidden at rest).
     revealImmediately();
   } else {
     runAnimations();
