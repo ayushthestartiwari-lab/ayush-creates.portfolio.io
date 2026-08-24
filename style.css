@@ -102,6 +102,27 @@ h1, h2, h3, h4, .site-title, .brand-name {
   pointer-events: none;
 }
 
+/* Homepage background artwork. The source image is kept intact; this layer
+   simply frames it behind the existing interface and canvas network. */
+.network-background {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(8, 3, 18, 0.42), rgba(8, 3, 18, 0.7)),
+    url("assets/network-background.png") center 42% / clamp(360px, 34vw, 520px) auto no-repeat;
+  opacity: 0.58;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 640px) {
+  .network-background {
+    background-size: min(88vw, 480px) auto;
+    background-position: center 36%;
+  }
+}
+
 body::after {
   content: "";
   position: fixed;
