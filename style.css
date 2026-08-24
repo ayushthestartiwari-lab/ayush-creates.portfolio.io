@@ -102,22 +102,6 @@ h1, h2, h3, h4, .site-title, .brand-name {
   pointer-events: none;
 }
 
-/* Full-screen homepage background artwork. */
-.network-background {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(8, 3, 18, 0.42), rgba(8, 3, 18, 0.60)),
-    url("background.png");
-  background-position: center, center;
-  background-size: 100% 100%, 100% 100%;
-  background-repeat: no-repeat, no-repeat;
-  opacity: 0.88;
-  will-change: transform, opacity;
-}
-
 body::after {
   content: "";
   position: fixed;
