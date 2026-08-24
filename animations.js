@@ -25,12 +25,14 @@
 //      before the class is added, so nothing here depends on any
 //      transition-delay rule existing in style.css.
 //
-//   2. Motion-driven animations (hero, images, geometric background
-//      layers, buttons, cards) — everything else. Where an element
-//      has both an entrance animation and a continuous scroll-linked
-//      one (the coding images), the scroll-linked one is deferred
-//      until the entrance has fully finished, so the two never fight
-//      over `transform`.
+//   2. Motion-driven animations (hero, images, buttons, cards) —
+//      everything else. Where an element has both an entrance
+//      animation and a continuous scroll-linked one (the coding
+//      images), the scroll-linked one is deferred until the entrance
+//      has fully finished, so the two never fight over `transform`.
+//      (The decorative geometric background is a separate system —
+//      geo-network.js, plain JS/canvas, no Motion — not part of
+//      either system below.)
 //
 // Every phase in runAnimations() is wrapped so a failure in one
 // (missing element, older Motion build without scroll()/inView(),
@@ -79,9 +81,6 @@ function runAnimations() {
     languageCards: document.querySelectorAll(".language-card"),
     liveCta: document.querySelectorAll(".live-cta"),
     whyBox: document.querySelectorAll(".why-box"),
-    geoBack: document.querySelectorAll(".geo-shape.geo-back"),
-    geoMid: document.querySelectorAll(".geo-shape.geo-mid"),
-    geoFront: document.querySelectorAll(".geo-shape.geo-front"),
   };
 
   // Each phase is independent and defensively isolated: a missing
@@ -164,61 +163,18 @@ function setupScrollReveal(inView, stagger, { languageCards, liveCta, whyBox }) 
 }
 
 // ---- Scroll depth: continuous, scroll-progress-linked motion for the
-// hero and decorative background layers. Bound directly to scroll
-// position via Motion's scroll(), so it plays forward/backward in sync
-// with the scrollbar automatically — no separate reverse handling
-// needed. Skipped on narrow viewports: the parallax range is barely
-// visible on a small screen and isn't worth the continuous scroll work
-// on typically weaker hardware.
-
-// Binds one depth band's worth of geometric shapes to scroll.
-// Alternates direction and varies rate/rotation per shape from its
-// index alone, so every shape in a band still feels distinct without
-// any random-number generation. ----
-function bindGeoDepthLayer(animate, scroll, shapes, { baseRate, rateStep, rotateStep }) {
-  shapes.forEach((shape, i) => {
-    const direction = i % 2 === 0 ? 1 : -1;
-    const rate = baseRate + (i % 4) * rateStep;
-    const rotateAmount = ((i % 5) + 1) * rotateStep * direction;
-
-    scroll(
-      animate(
-        shape,
-        { y: ["0%", `${direction * rate}%`], rotate: [0, rotateAmount] },
-        { easing: "linear" }
-      ),
-      { target: shape, offset: ["start end", "end start"] }
-    );
-  });
-}
-
-function setupScrollDepth(animate, scroll, { hero, geoBack, geoMid, geoFront, images }, imagesEntrance) {
-  if (typeof scroll !== "function") return;
-
-  // Geometric background: three depth bands, each shape bound
-  // directly to its own scroll progress (target: the shape itself,
-  // not the page), which is what makes every shape animate only
-  // while it's near the viewport and freeze the instant scrolling
-  // stops — same mechanism the coding-image drift below already
-  // relies on. Speed/rotation vary per shape via a deterministic
-  // formula on its index (not Math.random()), so the motion reads as
-  // varied without ever being unpredictable or jumpy between reloads.
-  // Deliberately NOT gated on IS_NARROW_VIEWPORT (unlike hero/images
-  // below): each binding is a cheap single-element scroll() listener,
-  // and skipping it entirely on phones is what made the background
-  // look scroll-unlinked there — the mobile-only thinning already
-  // happens in CSS via .geo-mobile-hide.
-  bindGeoDepthLayer(animate, scroll, geoBack, { baseRate: 4, rateStep: 2, rotateStep: 3 });
-  bindGeoDepthLayer(animate, scroll, geoMid, { baseRate: 9, rateStep: 3, rotateStep: 5 });
-  bindGeoDepthLayer(animate, scroll, geoFront, { baseRate: 15, rateStep: 4, rotateStep: 7 });
-
-  // Hero/coding-image parallax stays desktop-only, unchanged from
-  // before: the visible range is barely perceptible on a small screen
-  // and isn't worth the continuous scroll work on typically weaker
-  // hardware.
-  if (IS_NARROW_VIEWPORT) return;
-
-  // Hero content recedes as the page scrolls past it — foreground
+// hero and coding images. Bound directly to scroll position via
+// Motion's scroll(), so it plays forward/backward in sync with the
+// scrollbar automatically — no separate reverse handling needed.
+// Skipped on narrow viewports: the parallax range is barely visible
+// on a small screen and isn't worth the continuous scroll work on
+// typically weaker hardware.
+//
+// The decorative geometric background is a separate, independent
+// system (geo-network.js, a plain-JS canvas network) — it doesn't use
+// Motion at all, so it isn't wired up here.
+function setupScrollDepth(animate, scroll, { hero, images }, imagesEntrance) {
+  if (typeof scroll !== "function" || IS_NARROW_VIEWPORT) return;
   // layer of the depth stack. Targets the .hero container itself,
   // never the h1/quote the load-in animation already owns, so the two
   // systems never compete for the same element's transform.
@@ -291,13 +247,12 @@ if (typeof Motion === "undefined") {
   ).matches;
 
   if (prefersReducedMotion) {
-    // Reveal immediately, no animation — the geometric background's
-    // shapes never receive a scroll-linked transform in this branch
-    // (runAnimations, and therefore bindGeoDepthLayer, never runs),
-    // so they stay static automatically. Skipping the hero/image
-    // entrance calls is safe because those
-    // elements aren't hidden by default in CSS (their keyframes force
-    // an opacity:0 start, they aren't hidden at rest).
+    // Reveal immediately, no animation. (The geometric background is
+    // unaffected either way — geo-network.js makes its own, separate
+    // prefers-reduced-motion check before ever attaching a scroll
+    // listener.) Skipping the hero/image entrance calls is safe
+    // because those elements aren't hidden by default in CSS (their
+    // keyframes force an opacity:0 start, they aren't hidden at rest).
     revealImmediately();
   } else {
     runAnimations();
