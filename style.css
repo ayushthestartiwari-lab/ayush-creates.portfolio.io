@@ -109,29 +109,18 @@ h1, h2, h3, h4, .site-title, .brand-name {
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background:
-    linear-gradient(rgba(8, 3, 18, 0.42), rgba(8, 3, 18, 0.7)),
-   url("background.png") center 42% / clamp(360px, 34vw, 520px) auto no-repeat;
-  opacity: 0.58;
+
+  background-image:
+    linear-gradient(rgba(8, 3, 18, 0.42), rgba(8, 3, 18, 0.60)),
+    url("background.png");
+
+  background-position: center, center;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+
+  opacity: 0.88;
   will-change: transform, opacity;
 }
-
-@media (max-width: 640px) {
-  .network-background {
-    background-size: min(88vw, 480px) auto;
-    background-position: center 36%;
-  }
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: -1;
-}
-
 
 /* Header */
 header {
