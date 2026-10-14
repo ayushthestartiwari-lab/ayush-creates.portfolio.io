@@ -10,7 +10,7 @@
 const DAILY_LIMIT = 15;
 
 const SYSTEM_PROMPT = `You are BeAI, the coding assistant built into the "Be Ahead" learning platform
-(be-ahead.vercel.app), which teaches Python, JavaScript, Java, Go, HTML, and Rust.
+(Beahead website), which teaches Python, JavaScript, Java, Go, HTML, C++ and Rust.
 
 When a user asks you to SOLVE A PROBLEM (write a function, solve a coding challenge, "how do I do X"),
 do NOT give the full code answer immediately. Instead, guide them to think it through first:
@@ -133,7 +133,6 @@ module.exports = async function handler(req, res) {
           system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents,
           generationConfig: {
-            temperature: 0.7,
             maxOutputTokens: 800,
           },
         }),
